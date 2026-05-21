@@ -3,15 +3,17 @@ import { useState } from 'react';
 import dynamic from 'next/dynamic';
 
 const CodingTab    = dynamic(() => import('./components/CodingTab'),    { ssr: false });
-const QueueTab     = dynamic(() => import('./components/QueueTab'),     { ssr: false });
-const RightsTab    = dynamic(() => import('./components/RightsTab'),    { ssr: false });
+const PipelineTab  = dynamic(() => import('./components/PipelineTab'),  { ssr: false });
+const WelfareTab   = dynamic(() => import('./components/WelfareTab'),   { ssr: false });
+const VHVTab       = dynamic(() => import('./components/VHVTab'),       { ssr: false });
 const DashboardTab = dynamic(() => import('./components/DashboardTab'), { ssr: false });
 
 const TABS = [
-  { id: 'coding',    emoji: '🏥', label: 'บันทึกการรักษา', sub: 'ICD-10 AI' },
-  { id: 'queue',     emoji: '👥', label: 'คิวอัจฉริยะ',   sub: 'Smart Queue' },
-  { id: 'rights',    emoji: '💬', label: 'สิทธิ์ของฉัน',  sub: 'Rights Bot' },
-  { id: 'dashboard', emoji: '📊', label: 'Dashboard',       sub: 'Analytics' },
+  { id: 'coding',    emoji: '🏥', label: 'บันทึก ICD-10',  sub: 'AI Coding' },
+  { id: 'pipeline',  emoji: '🔗', label: 'PWL Pipeline',   sub: 'Data Flow' },
+  { id: 'welfare',   emoji: '🛡️', label: 'สิทธิ์ผู้ป่วย',  sub: 'State Machine' },
+  { id: 'vhv',       emoji: '📱', label: 'แดชบอร์ด อสม.', sub: 'Last-Mile' },
+  { id: 'dashboard', emoji: '📊', label: 'ภาพรวมระบบ',     sub: 'Analytics' },
 ];
 
 export default function HomePage() {
@@ -105,8 +107,9 @@ export default function HomePage() {
         {/* Content */}
         <div className="anim-fade-up">
           {active === 'coding'    && <CodingTab />}
-          {active === 'queue'     && <QueueTab />}
-          {active === 'rights'    && <RightsTab />}
+          {active === 'pipeline'  && <PipelineTab />}
+          {active === 'welfare'   && <WelfareTab />}
+          {active === 'vhv'       && <VHVTab />}
           {active === 'dashboard' && <DashboardTab />}
         </div>
       </main>

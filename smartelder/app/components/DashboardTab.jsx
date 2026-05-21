@@ -31,6 +31,23 @@ const CustomTooltip = ({ active, payload, label }) => {
 export default function DashboardTab() {
   return (
     <div>
+      {/* Impact metrics */}
+      <div className="responsive-grid-4" style={{ marginBottom:20 }}>
+        {[
+          { icon:'💰', value:'฿2.4M', label:'เงินสวัสดิการปลดล็อก', sub:'ต่อเดือน (ทั่วประเทศ)', color:'#0F6E56' },
+          { icon:'👴', value:'1,247', label:'ผู้สูงอายุได้รับสิทธิ์', sub:'เพิ่มขึ้นจากระบบเดิม', color:'#6366F1' },
+          { icon:'🚫', value:'0',    label:'เคสตกหล่น', sub:'Zero-gap สิทธิ์สาธารณสุข', color:'#17A97E' },
+          { icon:'⚡', value:'<1hr', label:'เวลาปลดล็อกสิทธิ์', sub:'จากเดิม 2–4 สัปดาห์', color:'#F59E0B' },
+        ].map((m, i) => (
+          <div key={i} style={{ background:'rgba(255,255,255,0.88)', backdropFilter:'blur(12px)', border:`1px solid ${m.color}20`, borderRadius:20, padding:'20px 16px', textAlign:'center', boxShadow:'0 4px 24px rgba(15,110,86,0.07)' }}>
+            <div style={{ fontSize:26, marginBottom:6 }}>{m.icon}</div>
+            <div className="impact-number" style={{ fontSize:28 }}>{m.value}</div>
+            <div style={{ fontSize:13, fontWeight:700, color:'#1A2E28', marginTop:4 }}>{m.label}</div>
+            <div style={{ fontSize:11, color:'#9BBCAF', marginTop:2 }}>{m.sub}</div>
+          </div>
+        ))}
+      </div>
+
       {/* Alert */}
       <div style={{
         borderRadius:16, padding:'14px 18px', marginBottom:20,
