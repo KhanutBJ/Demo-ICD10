@@ -1,6 +1,7 @@
 'use client';
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
+import { WelfareProvider } from './context/WelfareContext';
 
 const CodingTab    = dynamic(() => import('./components/CodingTab'),    { ssr: false });
 const PipelineTab  = dynamic(() => import('./components/PipelineTab'),  { ssr: false });
@@ -19,6 +20,10 @@ const TABS = [
 ];
 
 export default function HomePage() {
+  return <WelfareProvider><HomeInner /></WelfareProvider>;
+}
+
+function HomeInner() {
   const [active, setActive] = useState('coding');
   const now = new Date().toLocaleDateString('th-TH', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',

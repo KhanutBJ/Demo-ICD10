@@ -1,15 +1,16 @@
 'use client';
 import { useState, useRef } from 'react';
+import { useWelfare, matchIcd } from '../context/WelfareContext';
 
 const GROQ_ASR_KEY = process.env.NEXT_PUBLIC_GROQ_ASR_KEY;
 const GROQ_LLM_KEY = process.env.NEXT_PUBLIC_GROQ_LLM_KEY;
 
 const PATIENTS = [
-  { id: 'P001', name: 'นาย สมชาย ใจดี',    age: 72, hn: 'HN-2024-001', condition: 'DM Type 2, HT',   icon: '👴' },
-  { id: 'P002', name: 'นาง มาลี รักสุข',    age: 68, hn: 'HN-2024-002', condition: 'Knee OA',         icon: '👵' },
-  { id: 'P003', name: 'นาย วิชัย ศรีสุข',   age: 80, hn: 'HN-2024-003', condition: 'Heart Failure',   icon: '👴' },
-  { id: 'P004', name: 'นาง สุนีย์ แก้วใส',  age: 75, hn: 'HN-2024-004', condition: 'Cataract',        icon: '👵' },
-  { id: 'P005', name: 'นาย ประยุทธ์ ดีงาม', age: 65, hn: 'HN-2024-005', condition: 'HT, DM Type 2',   icon: '👴' },
+  { id: 'P001', name: 'นาย สมชาย ใจดี',    age: 72, hn: 'HN-2024-001', condition: 'DM Type 2, HT',   icon: '👴', addr: '88 ถ.พระราม 2 บางขุนเทียน' },
+  { id: 'P002', name: 'นาง มาลี รักสุข',    age: 68, hn: 'HN-2024-002', condition: 'Knee OA',         icon: '👵', addr: '22 ซ.สวนพลู ราษฎร์บูรณะ' },
+  { id: 'P003', name: 'นาย วิชัย ศรีสุข',   age: 80, hn: 'HN-2024-003', condition: 'Heart Failure',   icon: '👴', addr: '7/1 ซ.บางปะกอก' },
+  { id: 'P004', name: 'นาง สุนีย์ แก้วใส',  age: 75, hn: 'HN-2024-004', condition: 'Cataract',        icon: '👵', addr: '15/3 ซ.วัดสิงห์ บางมด' },
+  { id: 'P005', name: 'นาย ประยุทธ์ ดีงาม', age: 65, hn: 'HN-2024-005', condition: 'HT, DM Type 2',   icon: '👴', addr: '44 ถ.สุขสวัสดิ์ บางมด' },
 ];
 
 // Strip Qwen3 <think>...</think> tokens then extract JSON
@@ -29,6 +30,7 @@ const STAT_ITEMS = [
 ];
 
 export default function CodingTab() {
+  const { dispatch } = useWelfare();
   const [patient, setPatient]   = useState(PATIENTS[0]);
   const [note, setNote]         = useState('');
   const [recording, setRec]     = useState(false);
@@ -36,8 +38,10 @@ export default function CodingTab() {
   const [coding, setCoding]     = useState(false);
   const [codes, setCodes]       = useState(null);
   const [selected, setSelected] = useState([]);
-  const [status, setStatus]     = useState(null); // { type, msg }
+  const [status, setStatus]     = useState(null);
   const [saved, setSaved]       = useState(false);
+  const [welfareAnim, setWelfareAnim] = useState(0);
+  const [welfareUnlocked, setWelfareUnlocked] = useState([]);
   const mrRef     = useRef(null);
   const chunksRef = useRef([]);
 
@@ -124,9 +128,24 @@ export default function CodingTab() {
     if (!selected.length) { setStatus({ type: 'warn', msg: '⚠️ เลือก ICD code อย่างน้อย 1 รายการ' }); return; }
     setSaved(true);
     setStatus({ type: 'ok', msg: `✅ บันทึก ${selected.length} รหัสลง HIS สำเร็จ! ไม่ต้องรอนักจัดรหัส` });
+    // Collect welfare benefits
+    const seen = new Set();
+    const benefits = [];
+    for (const code of selected) {
+      const w = matchIcd(code);
+      if (w) w.benefits.forEach(b => { if (!seen.has(b.name)) { seen.add(b.name); benefits.push(b); } });
+    }
+    setWelfareUnlocked(benefits);
+    // Tokenization animation
+    setWelfareAnim(0);
+    setTimeout(() => setWelfareAnim(1), 700);
+    setTimeout(() => setWelfareAnim(2), 1500);
+    setTimeout(() => setWelfareAnim(3), 2300);
+    // Dispatch to global context
+    dispatch({ type:'SAVE_ICD', payload:{ patientId:patient.id, patientName:patient.name, icdCodes:selected, addr:patient.addr } });
   };
 
-  const resetPatient = (p) => { setPatient(p); setCodes(null); setNote(''); setSaved(false); setStatus(null); setSelected([]); };
+  const resetPatient = (p) => { setPatient(p); setCodes(null); setNote(''); setSaved(false); setStatus(null); setSelected([]); setWelfareAnim(0); setWelfareUnlocked([]); };
 
   const statusClass = status?.type === 'ok' ? 'status-ok' : status?.type === 'err' ? 'status-err' : status?.type === 'warn' ? 'status-warn' : 'status-info';
 
@@ -337,6 +356,44 @@ export default function CodingTab() {
           )}
         </div>
       </div>
+
+      {/* ── Welfare Unlock Panel ───────────────────── */}
+      {saved && (
+        <div className="glass-card anim-fade-up" style={{ marginTop:20, padding:22 }}>
+          <p style={{ fontWeight:800, fontSize:15, color:'#0F6E56', marginBottom:14 }}>🔗 PWL — กำลังส่งสัญญาณสิทธิ์</p>
+          {/* Tokenization steps */}
+          <div style={{ display:'flex', gap:8, flexWrap:'wrap', marginBottom:16 }}>
+            {[
+              { label:'SHA-256 เข้ารหัส', icon:'🔒' },
+              { label:'ส่ง mTLS → DGA', icon:'☁️' },
+              { label:'สิทธิ์ถูกปลดล็อก!', icon:'✅' },
+            ].map((step, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 14px', borderRadius:10, background: welfareAnim > i ? '#F0FDF9' : '#F8FAFC', border:`1.5px solid ${welfareAnim > i ? '#0F6E56' : '#E8F0ED'}`, transition:'all 0.4s' }}>
+                <span>{welfareAnim > i ? step.icon : '⏳'}</span>
+                <span style={{ fontSize:12, fontWeight:600, color: welfareAnim > i ? '#0F6E56' : '#9BBCAF' }}>{step.label}</span>
+              </div>
+            ))}
+          </div>
+          {/* Benefits */}
+          {welfareAnim >= 3 && welfareUnlocked.length > 0 && (
+            <div className="anim-fade-up">
+              <p style={{ fontSize:12, color:'#9BBCAF', marginBottom:10 }}>สิทธิ์ที่ถูกปลดล็อกจาก ICD-10 ส่งไปยัง สปสช./อปท. แล้ว</p>
+              <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+                {welfareUnlocked.map((b, i) => (
+                  <div key={i} className="benefit-chip">
+                    <span style={{ fontSize:20 }}>{b.icon}</span>
+                    <div><p style={{ fontWeight:700, fontSize:13, color:'#1A2E28' }}>{b.name}</p><p style={{ fontSize:11, color:'#6B9A87' }}>{b.detail}</p></div>
+                    <span className={`badge ${b.badge}`} style={{ marginLeft:'auto' }}>ปลดล็อกแล้ว</span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          )}
+          {welfareAnim >= 3 && welfareUnlocked.length === 0 && (
+            <p style={{ fontSize:12, color:'#9BBCAF' }}>รหัส ICD ที่เลือกไม่ตรงกับเงื่อนไขสิทธิ์พิเศษ — อยู่ในสิทธิ์บัตรทองปกติ</p>
+          )}
+        </div>
+      )}
 
       {/* ── Stat row ────────────────────────────────────── */}
       <div className="responsive-grid-3" style={{ marginTop: 20 }}>

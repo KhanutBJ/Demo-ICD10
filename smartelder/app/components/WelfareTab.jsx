@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useWelfare } from '../context/WelfareContext';
 
 const PATIENTS = [
   { id:'P001', name:'นาย สมชาย ใจดี',   age:72, icon:'👴', icd:'I63.9', icdLabel:'Stroke', adl:3,  state:'active',  ttl:null },
@@ -35,6 +36,8 @@ const BENEFITS = {
   ],
 };
 
+const STATE_ORDER = ['pending','eligible','active','hold','ended'];
+
 const STATES = [
   { id:'pending',  label:'Pending',       icon:'⏳', cls:'' },
   { id:'eligible', label:'Eligible',      icon:'✔️', cls:'passed' },
@@ -42,8 +45,6 @@ const STATES = [
   { id:'hold',     label:'Suspended',     icon:'⏸️', cls:'hold' },
   { id:'ended',    label:'Terminated',    icon:'🔴', cls:'ended' },
 ];
-
-const STATE_ORDER = ['pending','eligible','active','hold','ended'];
 
 const TIMELINE = {
   P001: [
@@ -77,17 +78,17 @@ function AdlGauge({ score }) {
 }
 
 export default function WelfareTab() {
+  const { state, dispatch } = useWelfare();
   const [pid, setPid] = useState('P001');
-  const p = PATIENTS.find(x => x.id === pid);
-  const benefits = BENEFITS[p.icd] || [];
-  const timeline = TIMELINE[pid] || [];
-  const stateIdx = STATE_ORDER.indexOf(p.state);
 
-  const [overrideState, setOverride] = useState({});
-  const currentState = overrideState[pid] || p.state;
+  const patients = state.patients;
+  const p = patients[pid] || {};
+  const benefits  = p.benefits || [];
+  const timeline  = p.timeline || [];
+  const currentState = p.state || 'pending';
   const currentIdx   = STATE_ORDER.indexOf(currentState);
 
-  const suspend = () => setOverride(prev => ({ ...prev, [pid]: currentState === 'hold' ? 'active' : 'hold' }));
+  const suspend = () => dispatch({ type:'SET_STATE', patientId:pid, newState: currentState==='hold' ? 'active' : 'hold' });
 
   return (
     <div>
@@ -95,10 +96,10 @@ export default function WelfareTab() {
       <div className="glass-card" style={{ padding:'16px 20px', marginBottom:20 }}>
         <p style={{ fontSize:11, fontWeight:700, color:'#9BBCAF', textTransform:'uppercase', letterSpacing:'0.8px', marginBottom:12 }}>เลือกผู้ป่วย</p>
         <div style={{ display:'flex', gap:8, flexWrap:'wrap' }}>
-          {PATIENTS.map(pt => (
-            <button key={pt.id} onClick={() => { setPid(pt.id); setOverride({}); }}
-              className={`patient-chip touch-active${pid===pt.id?' active':''}`}>
-              {pt.icon} {pt.name.split(' ')[1]} · {pt.age} ปี
+          {Object.entries(patients).map(([id, pt]) => (
+            <button key={id} onClick={() => setPid(id)}
+              className={`patient-chip touch-active${pid===id?' active':''}`}>
+              {pt.icon} {pt.name?.split(' ')[1]} · {pt.age} ปี
             </button>
           ))}
         </div>

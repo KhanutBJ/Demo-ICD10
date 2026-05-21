@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { useWelfare } from '../context/WelfareContext';
 
 const INIT_ALERTS = [
   { id:'A001', type:'urgent', icon:'🚨', title:'บัญชีธนาคารปิด — PromptPay โอนไม่ผ่าน', patient:'นาง สุนีย์ แก้วใส', addr:'15/3 ซ.วัดสิงห์ บางมด', action:'ไปผูก PromptPay ใหม่ + ยืนยันตัวตน', status:'pending', time:'10 นาทีที่แล้ว' },
@@ -11,17 +12,20 @@ const INIT_ALERTS = [
 const URGENCY_COLOR = { urgent:'#EF4444', review:'#F59E0B', done:'#0F6E56' };
 
 export default function VHVTab() {
-  const [alerts, setAlerts]   = useState(INIT_ALERTS);
+  const { state, dispatch } = useWelfare();
+  const alerts = state.alerts;
   const [logging, setLogging] = useState(null);
   const [logAdl, setLogAdl]   = useState('');
   const [logNote, setLogNote] = useState('');
-  const [saved, setSaved]     = useState({});
 
-  const accept = id => setAlerts(p => p.map(a => a.id===id ? { ...a, status:'accepted' } : a));
-
+  const accept  = id => dispatch({ type:'ACCEPT_ALERT', id });
   const saveLog = id => {
-    setSaved(p => ({ ...p, [id]: true }));
-    setAlerts(p => p.map(a => a.id===id ? { ...a, status:'done' } : a));
+    const adlVal = parseInt(logAdl);
+    const alert  = alerts.find(a => a.id===id);
+    if (!isNaN(adlVal) && alert?.patientId) {
+      dispatch({ type:'UPDATE_ADL', patientId:alert.patientId, adl:adlVal });
+    }
+    dispatch({ type:'CLOSE_ALERT', id });
     setLogging(null); setLogAdl(''); setLogNote('');
   };
 
