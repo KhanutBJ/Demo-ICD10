@@ -1,17 +1,22 @@
-# 🏥 Synape x Right — Demo ICD-10
+# 🏥 Synape x Right — PWL POC Demo
 
-> AI-powered ICD-10 coding assistant and elderly rights protection system for Thai hospitals.
+> **Proactive Welfare Link (PWL)**: Transforming passive ICD-10 codes into an active social welfare ecosystem. "สิทธิ์ต้องวิ่งไปหาผู้ป่วย ไม่ใช่รอให้ผู้ป่วยมาถาม"
 
 ---
 
-## ✨ Features
+## ✨ Features & Architecture
 
-| Tab | Description |
-|-----|-------------|
-| 🏥 **บันทึกการรักษา** (ICD-10 AI) | Voice-to-text clinical note entry + AI-suggested ICD-10 codes via Groq LLM |
-| 👥 **คิวอัจฉริยะ** (Smart Queue) | Intelligent patient queue management |
-| 💬 **สิทธิ์ของฉัน** (Rights Bot) | AI chatbot explaining บัตรทอง 30 บาท (Universal Healthcare) rights to elderly patients |
-| 📊 **Dashboard** | Analytics and reporting overview |
+**Core Workflow (Live Shared State):**
+`🏥 CodingTab → (React Context) → 🛡️ WelfareTab, 📱 VHVTab, 📊 Dashboard`
+
+| Tab | Feature | Description |
+|-----|---------|-------------|
+| 🏥 **บันทึก ICD-10** | **AI Coding** | Voice/Text entry → AI suggests ICD-10 codes → Save triggers PWL |
+| 🔗 **PWL Pipeline** | **Data Flow** | Animated 4-stage visualization: HIS → Tokenizer → DGA → Delivery |
+| 🛡️ **สิทธิ์ผู้ป่วย** | **State Machine** | Live welfare state per patient, TTL countdowns, and ADL tracking |
+| 📱 **แดชบอร์ด อสม.** | **Last-Mile** | Real-time task alerts for VHV (อสม.), ADL update dispatching |
+| 📊 **ภาพรวมระบบ** | **Analytics** | Live impact metrics based on unlocked welfare records |
+| 💬 **สิทธิ์ AI** | **Rights Bot** | AI chatbot for Universal Healthcare (บัตรทอง 30 บาท) FAQs |
 
 ---
 
@@ -21,6 +26,7 @@
 - **Language**: TypeScript + JSX
 - **Styling**: Tailwind CSS v4
 - **Charts**: Recharts
+- **State Management**: React Context API + `useReducer`
 - **AI / LLM**: [Groq](https://groq.com/) — `qwen/qwen3-32b` for ICD coding & rights Q&A
 - **Speech-to-Text**: Groq Whisper `whisper-large-v3`
 
@@ -74,12 +80,16 @@ smartelder/
 ├── app/
 │   ├── components/
 │   │   ├── CodingTab.jsx     # ICD-10 AI coding (voice + LLM)
-│   │   ├── QueueTab.jsx      # Smart queue management
-│   │   ├── RightsTab.jsx     # Rights AI chatbot
-│   │   └── DashboardTab.jsx  # Analytics dashboard
+│   │   ├── PipelineTab.jsx   # Animated data flow visualization
+│   │   ├── WelfareTab.jsx    # Live patient state machine
+│   │   ├── VHVTab.jsx        # Village Health Volunteer dashboard
+│   │   ├── DashboardTab.jsx  # Live impact metrics
+│   │   └── RightsTab.jsx     # Rights AI chatbot
+│   ├── context/
+│   │   └── WelfareContext.jsx # Global shared state for PWL flow
 │   ├── globals.css
 │   ├── layout.tsx
-│   └── page.tsx              # Main app shell + tab navigation
+│   └── page.tsx              # Main app shell + tab routing
 ├── public/
 ├── package.json
 └── vercel.json
