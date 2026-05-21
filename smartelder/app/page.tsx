@@ -6,6 +6,7 @@ const CodingTab    = dynamic(() => import('./components/CodingTab'),    { ssr: f
 const PipelineTab  = dynamic(() => import('./components/PipelineTab'),  { ssr: false });
 const WelfareTab   = dynamic(() => import('./components/WelfareTab'),   { ssr: false });
 const VHVTab       = dynamic(() => import('./components/VHVTab'),       { ssr: false });
+const RightsTab    = dynamic(() => import('./components/RightsTab'),    { ssr: false });
 const DashboardTab = dynamic(() => import('./components/DashboardTab'), { ssr: false });
 
 const TABS = [
@@ -14,6 +15,7 @@ const TABS = [
   { id: 'welfare',   emoji: '🛡️', label: 'สิทธิ์ผู้ป่วย',  sub: 'State Machine' },
   { id: 'vhv',       emoji: '📱', label: 'แดชบอร์ด อสม.', sub: 'Last-Mile' },
   { id: 'dashboard', emoji: '📊', label: 'ภาพรวมระบบ',     sub: 'Analytics' },
+  { id: 'rights',    emoji: '💬', label: 'สิทธิ์ AI',        sub: 'Rights Bot' },
 ];
 
 export default function HomePage() {
@@ -111,6 +113,7 @@ export default function HomePage() {
           {active === 'welfare'   && <WelfareTab />}
           {active === 'vhv'       && <VHVTab />}
           {active === 'dashboard' && <DashboardTab />}
+          {active === 'rights'    && <RightsTab />}
         </div>
       </main>
 
