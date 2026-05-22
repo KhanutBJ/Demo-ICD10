@@ -38,10 +38,10 @@ export default function VHVTab() {
       {/* Header */}
       <div style={{ borderRadius:20, padding:'18px 24px', marginBottom:20, background:'linear-gradient(135deg,#0a3d2e,#0F6E56,#17A97E)', boxShadow:'0 6px 28px rgba(15,110,86,0.28)', display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12 }}>
         <div style={{ display:'flex', alignItems:'center', gap:14 }}>
-          <div style={{ width:48, height:48, borderRadius:14, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24 }}>📱</div>
+          <div style={{ width:48, height:48, borderRadius:14, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24 }}>🏘️</div>
           <div>
-            <p style={{ color:'white', fontWeight:800, fontSize:17 }}>แดชบอร์ด อสม.</p>
-            <p style={{ color:'rgba(255,255,255,0.7)', fontSize:12 }}>Last-Mile Delivery • พื้นที่: บางมด–ราษฎร์บูรณะ</p>
+            <p style={{ color:'white', fontWeight:800, fontSize:17 }}>Work Orders — อปท. Last-Mile</p>
+            <p style={{ color:'rgba(255,255,255,0.7)', fontSize:12 }}>Exception Handler • อสม. เข้าช่วยเฉพาะกรณีที่ระบบ re-route • พื้นที่: บางมด–ราษฎร์บูรณะ</p>
           </div>
         </div>
         <div style={{ display:'flex', gap:8 }}>

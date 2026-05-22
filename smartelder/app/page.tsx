@@ -14,7 +14,7 @@ const TABS = [
   { id: 'coding',    emoji: '🏥', label: 'บันทึก ICD-10',  sub: 'AI Coding' },
   { id: 'pipeline',  emoji: '🔗', label: 'PWL Pipeline',   sub: 'Data Flow' },
   { id: 'welfare',   emoji: '🛡️', label: 'สิทธิ์ผู้ป่วย',  sub: 'State Machine' },
-  { id: 'vhv',       emoji: '📱', label: 'แดชบอร์ด อสม.', sub: 'Last-Mile' },
+  { id: 'vhv',       emoji: '🏘️', label: 'อปท. Last-Mile',  sub: 'Work Orders' },
   { id: 'dashboard', emoji: '📊', label: 'ภาพรวมระบบ',     sub: 'Analytics' },
   { id: 'rights',    emoji: '💬', label: 'สิทธิ์ AI',        sub: 'Rights Bot' },
 ];

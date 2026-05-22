@@ -44,7 +44,7 @@ function reducer(state, action) {
   switch(action.type) {
 
     case 'SAVE_ICD': {
-      const { patientId, patientName, icdCodes, addr } = action.payload;
+      const { patientId, patientName, icdCodes, addr, adl } = action.payload;
       let welfare = null, matchedIcd = null;
       for (const c of icdCodes) { const w = matchIcd(c); if (w) { welfare=w; matchedIcd=c; break; } }
       if (!welfare) return state;
@@ -60,7 +60,7 @@ function reducer(state, action) {
 
       return {
         ...state,
-        patients: { ...state.patients, [patientId]: { ...state.patients[patientId], state:welfare.state, icd:matchedIcd, locked:!!welfare.locked, ttl:welfare.ttl||null, benefits:welfare.benefits, timeline:[{date:now,event:`ICD-10: ${matchedIcd} บันทึกจาก AI Coder`,type:'ok'},{date:now,event:`Tier: ${welfare.tier} → State: ${welfare.state==='active'?'Active':'Eligible'}`,type:'ok'},...(state.patients[patientId]?.timeline||[])] } },
+        patients: { ...state.patients, [patientId]: { ...state.patients[patientId], state:welfare.state, icd:matchedIcd, adl: adl !== undefined ? adl : (state.patients[patientId]?.adl ?? null), locked:!!welfare.locked, ttl:welfare.ttl||null, benefits:welfare.benefits, timeline:[{date:now,event:`ICD-10: ${matchedIcd} บันทึกจาก AI Coder${adl !== undefined ? ` (ADL: ${adl})` : ''}`,type:'ok'},{date:now,event:`Tier: ${welfare.tier} → State: ${welfare.state==='active'?'Active':'Eligible'}`,type:'ok'},...(state.patients[patientId]?.timeline||[])] } },
         alerts: newAlerts,
         savedCount: state.savedCount + 1,
       };

@@ -1,5 +1,5 @@
 'use client';
-import { useWelfare } from '../context/WelfareContext';
+import { useWelfare, matchIcd } from '../context/WelfareContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
 
 const DATA = [
@@ -29,11 +29,39 @@ const CustomTooltip = ({ active, payload, label }) => {
   );
 };
 
+const TIER_META = {
+  STROKE_DEPENDENT:  { color:'#EF4444', desc:'I63 ADL≤6' },
+  STROKE_SEQUELAE:   { color:'#F97316', desc:'I69 ADL≤8' },
+  DEMENTIA_LONGTERM: { color:'#8B5CF6', desc:'F01/F03' },
+  FRACTURE_TEMPORARY:{ color:'#F59E0B', desc:'S72 90วัน' },
+  CARDIAC_DEPENDENT: { color:'#EC4899', desc:'I50 ADL≤8' },
+  CHRONIC:           { color:'#3B82F6', desc:'M17/E11' },
+};
+
 export default function DashboardTab() {
   const { state } = useWelfare();
-  const activeCount  = Object.values(state.patients).filter(p => p.state==='active').length;
+  const patients      = Object.values(state.patients);
+  const totalPatients = patients.length;
+  const activeCount   = patients.filter(p => p.state==='active' || p.state==='renewed').length;
   const pendingAlerts = state.alerts.filter(a => a.status==='pending').length;
   const doneAlerts    = state.alerts.filter(a => a.status==='done').length;
+
+  const stateStats = [
+    { label:'Active',     icon:'💚', color:'#0F6E56', count: patients.filter(p=>p.state==='active').length },
+    { label:'Eligible',   icon:'✔️', color:'#3B82F6', count: patients.filter(p=>p.state==='eligible').length },
+    { label:'Renewed',    icon:'🔄', color:'#6366F1', count: patients.filter(p=>p.state==='renewed').length },
+    { label:'Suspended',  icon:'⏸️', color:'#F59E0B', count: patients.filter(p=>p.state==='suspended').length },
+    { label:'Terminated', icon:'🔴', color:'#EF4444', count: patients.filter(p=>p.state==='terminated').length },
+  ].filter(s => s.count > 0);
+
+  const tierCounts = {};
+  patients.forEach(p => {
+    const tier = matchIcd(p.icd)?.tier || 'OTHER';
+    tierCounts[tier] = (tierCounts[tier] || 0) + 1;
+  });
+  const tierStats = Object.entries(tierCounts).map(([tier, count]) => ({
+    tier, count, ...(TIER_META[tier] || { color:'#9BBCAF', desc:'—' }),
+  }));
 
   return (
     <div>
@@ -127,6 +155,86 @@ export default function DashboardTab() {
             )}
           </div>
         ))}
+      </div>
+
+      {/* ── กสม. Rights Dashboard ──────────────────────────── */}
+      <div style={{ marginTop:28, marginBottom:20 }}>
+        <div style={{ borderRadius:20, padding:'18px 24px', marginBottom:20, background:'linear-gradient(135deg,#1E3A5F,#1D4ED8,#3B82F6)', boxShadow:'0 6px 28px rgba(29,78,216,0.25)', display:'flex', alignItems:'center', gap:14 }}>
+          <div style={{ width:48, height:48, borderRadius:14, background:'rgba(255,255,255,0.18)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:24, flexShrink:0 }}>⚖️</div>
+          <div>
+            <p style={{ color:'white', fontWeight:800, fontSize:17 }}>กสม. Rights Dashboard</p>
+            <p style={{ color:'rgba(255,255,255,0.7)', fontSize:12 }}>Aggregate data only • No PII • Read-only สำหรับนักวิเคราะห์ กสม.</p>
+          </div>
+          <span style={{ marginLeft:'auto', padding:'5px 14px', borderRadius:10, background:'rgba(255,255,255,0.18)', color:'white', fontSize:11, fontWeight:700, flexShrink:0 }}>Live</span>
+        </div>
+
+        {/* Time-to-Benefit + Coverage + Exceptions */}
+        <div className="responsive-grid-3" style={{ marginBottom:20 }}>
+          {[
+            { label:'Time-to-Benefit (มัธยฐาน)', icon:'⏱️', color:'#1D4ED8', before:'45–90 วัน', after:'< 7 วัน' },
+            { label:'Coverage Rate (pilot cohort)', icon:'📊', color:'#0F6E56', before:'~40%', after:`${totalPatients ? Math.round((activeCount/totalPatients)*100) : 0}%` },
+            { label:'Unresolved Exceptions', icon:'🚨', color:'#EF4444', before:'ไม่มีข้อมูล', after:`${pendingAlerts} เคส` },
+          ].map((m,i) => (
+            <div key={i} className="glass-card" style={{ padding:'18px 16px' }}>
+              <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:12 }}>
+                <div style={{ width:30, height:30, borderRadius:9, background:`${m.color}15`, display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>{m.icon}</div>
+                <span style={{ fontWeight:700, fontSize:12, color:'#1A2E28' }}>{m.label}</span>
+              </div>
+              <div style={{ display:'flex', gap:8, alignItems:'center' }}>
+                <div style={{ flex:1, padding:'8px 10px', borderRadius:10, background:'#FEF2F2', border:'1px solid #FCA5A5' }}>
+                  <p style={{ fontSize:10, color:'#9BBCAF', marginBottom:1 }}>ก่อน PWL</p>
+                  <p style={{ fontSize:14, fontWeight:800, color:'#DC2626' }}>{m.before}</p>
+                </div>
+                <span style={{ color:'#9BBCAF', fontSize:12 }}>→</span>
+                <div style={{ flex:1, padding:'8px 10px', borderRadius:10, background:'#F0FDF9', border:`1px solid ${m.color}40` }}>
+                  <p style={{ fontSize:10, color:'#9BBCAF', marginBottom:1 }}>หลัง PWL</p>
+                  <p style={{ fontSize:14, fontWeight:800, color:m.color }}>{m.after}</p>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+
+        <div className="responsive-grid-2">
+          {/* State distribution */}
+          <div className="glass-card" style={{ padding:'20px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+              <div style={{ width:30, height:30, borderRadius:9, background:'#1D4ED815', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>📋</div>
+              <span style={{ fontWeight:700, fontSize:13, color:'#1A2E28' }}>Welfare State Distribution</span>
+            </div>
+            {stateStats.map((s,i) => (
+              <div key={i} style={{ marginBottom:10 }}>
+                <div style={{ display:'flex', justifyContent:'space-between', marginBottom:4 }}>
+                  <span style={{ fontSize:12, fontWeight:600, color:'#4B7A6A' }}>{s.icon} {s.label}</span>
+                  <span style={{ fontSize:12, fontWeight:800, color:s.color }}>{s.count} ราย</span>
+                </div>
+                <div style={{ height:8, borderRadius:999, background:'#E8F0ED', overflow:'hidden' }}>
+                  <div style={{ height:'100%', width:`${totalPatients ? (s.count/totalPatients)*100 : 0}%`, background:s.color, borderRadius:999, transition:'width 0.8s' }} />
+                </div>
+              </div>
+            ))}
+          </div>
+
+          {/* Tier coverage */}
+          <div className="glass-card" style={{ padding:'20px' }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+              <div style={{ width:30, height:30, borderRadius:9, background:'#1D4ED815', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>🗺️</div>
+              <span style={{ fontWeight:700, fontSize:13, color:'#1A2E28' }}>Coverage by Welfare Tier</span>
+              <span style={{ fontSize:10, color:'#9BBCAF', marginLeft:'auto' }}>No PII</span>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {tierStats.map((t,i) => (
+                <div key={i} style={{ padding:'10px 12px', borderRadius:12, background:`${t.color}0D`, border:`1.5px solid ${t.color}30`, display:'flex', justifyContent:'space-between', alignItems:'center' }}>
+                  <div>
+                    <p style={{ fontSize:11, fontWeight:700, color:t.color }}>{t.tier}</p>
+                    <p style={{ fontSize:10, color:'#9BBCAF' }}>{t.desc}</p>
+                  </div>
+                  <span style={{ fontSize:22, fontWeight:900, color:t.color }}>{t.count}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        </div>
       </div>
 
       {/* Insight grid */}

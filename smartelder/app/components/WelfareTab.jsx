@@ -1,40 +1,6 @@
 'use client';
 import { useState } from 'react';
-import { useWelfare } from '../context/WelfareContext';
-
-const PATIENTS = [
-  { id:'P001', name:'นาย สมชาย ใจดี',   age:72, icon:'👴', icd:'I63.9', icdLabel:'Stroke', adl:3,  state:'active',  ttl:null },
-  { id:'P002', name:'นาง มาลี รักสุข',   age:68, icon:'👵', icd:'M17.1', icdLabel:'Knee OA', adl:14, state:'eligible', ttl:null },
-  { id:'P003', name:'นาย วิชัย ศรีสุข',  age:80, icon:'👴', icd:'I50.0', icdLabel:'Heart Failure', adl:6, state:'active', ttl:null },
-  { id:'P004', name:'นาง สุนีย์ แก้วใส', age:75, icon:'👵', icd:'S72.0', icdLabel:'Hip Fracture', adl:9, state:'hold',   ttl:72 },
-  { id:'P005', name:'นาย ประยุทธ์ ดีงาม',age:65, icon:'👴', icd:'F03',   icdLabel:'Dementia', adl:5,  state:'active',  ttl:null },
-];
-
-const BENEFITS = {
-  'I63.9': [
-    { icon:'🧻', name:'ผ้าอ้อมผู้ใหญ่ฟรี', detail:'3 ชิ้น/วัน (สปสช.)', badge:'badge-green' },
-    { icon:'👤', name:'Caregiver', detail:'6,000–10,442 บาท/ปี', badge:'badge-blue' },
-    { icon:'🛏️', name:'อุปกรณ์การแพทย์', detail:'ยืมเตียง/รถเข็นฟรี', badge:'badge-teal' },
-  ],
-  'M17.1': [
-    { icon:'🩺', name:'ตรวจสุขภาพประจำปี', detail:'ฟรีทุกปี', badge:'badge-green' },
-    { icon:'💊', name:'ยาแก้ปวดข้อ', detail:'ตามสิทธิ์บัตรทอง', badge:'badge-teal' },
-  ],
-  'I50.0': [
-    { icon:'🧻', name:'ผ้าอ้อมผู้ใหญ่ฟรี', detail:'3 ชิ้น/วัน', badge:'badge-green' },
-    { icon:'👤', name:'Caregiver', detail:'6,000–10,442 บาท/ปี', badge:'badge-blue' },
-    { icon:'💊', name:'Palliative Care', detail:'3,000 บาท/6 เดือน', badge:'badge-purple' },
-  ],
-  'S72.0': [
-    { icon:'🛏️', name:'อุปกรณ์ชั่วคราว', detail:'เตียง/รถเข็น 90 วัน', badge:'badge-orange' },
-    { icon:'🏃', name:'กายภาพบำบัด', detail:'ที่บ้านโดย อสม.', badge:'badge-blue' },
-  ],
-  'F03': [
-    { icon:'👤', name:'Caregiver', detail:'ล็อกสิทธิ์ถาวร', badge:'badge-blue' },
-    { icon:'🛏️', name:'อุปกรณ์การแพทย์', detail:'ยืมเตียง/รถเข็นฟรี', badge:'badge-teal' },
-    { icon:'🧻', name:'ผ้าอ้อมผู้ใหญ่ฟรี', detail:'3 ชิ้น/วัน', badge:'badge-green' },
-  ],
-};
+import { useWelfare, matchIcd } from '../context/WelfareContext';
 
 const STATE_ORDER = ['pending','eligible','active','suspended','renewed','terminated'];
 
@@ -47,19 +13,6 @@ const STATES = [
   { id:'terminated', label:'Terminated', icon:'🔴', cls:'ended' },
 ];
 
-const TIMELINE = {
-  P001: [
-    { date:'20 พ.ค. 2568', event:'แพทย์บันทึก ICD-10: I63.9 (Stroke)', type:'ok' },
-    { date:'20 พ.ค. 2568', event:'PWL Add-on ส่ง Token → DGA Gateway', type:'ok' },
-    { date:'20 พ.ค. 2568', event:'สถานะเปลี่ยน: Eligible → Active_Paying', type:'ok' },
-    { date:'01 มิ.ย. 2568', event:'PromptPay โอน 850 บาท สำเร็จ', type:'ok' },
-  ],
-  P004: [
-    { date:'15 พ.ค. 2568', event:'แพทย์บันทึก ICD-10: S72.0 (Hip Fracture)', type:'ok' },
-    { date:'15 พ.ค. 2568', event:'สถานะ: Active_Paying (TTL 90 วัน)', type:'ok' },
-    { date:'21 พ.ค. 2568', event:'ระบบแจ้งเตือน: อีก 72 วันต้องรีวิว ADL', type:'warn' },
-  ],
-};
 
 function AdlGauge({ score }) {
   const pct = (score / 20) * 100;
@@ -164,7 +117,7 @@ export default function WelfareTab() {
             <span className="badge badge-teal" style={{ marginLeft:'auto' }}>{benefits.length} รายการ</span>
           </div>
           <div style={{ marginBottom:12, padding:'8px 12px', borderRadius:10, background:'#F0FDF9', fontSize:12, color:'#0F6E56', fontWeight:600 }}>
-            ICD-10: <strong>{p.icd}</strong> — {p.icdLabel}
+            ICD-10: <strong>{p.icd}</strong> — Tier: <strong>{matchIcd(p.icd)?.tier || '—'}</strong>
           </div>
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {benefits.map((b, i) => (

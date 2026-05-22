@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
-import { useWelfare, matchIcd } from '../context/WelfareContext';
+import { useWelfare, matchIcd, ICD_MAP } from '../context/WelfareContext';
 
 const GROQ_ASR_KEY = process.env.NEXT_PUBLIC_GROQ_ASR_KEY;
 const GROQ_LLM_KEY = process.env.NEXT_PUBLIC_GROQ_LLM_KEY;
@@ -40,6 +40,7 @@ export default function CodingTab() {
   const [selected, setSelected] = useState([]);
   const [status, setStatus]     = useState(null);
   const [saved, setSaved]       = useState(false);
+  const [adlScore, setAdlScore]       = useState('');
   const [welfareAnim, setWelfareAnim] = useState(0);
   const [welfareUnlocked, setWelfareUnlocked] = useState([]);
   const mrRef     = useRef(null);
@@ -142,10 +143,15 @@ export default function CodingTab() {
     setTimeout(() => setWelfareAnim(2), 1500);
     setTimeout(() => setWelfareAnim(3), 2300);
     // Dispatch to global context
-    dispatch({ type:'SAVE_ICD', payload:{ patientId:patient.id, patientName:patient.name, icdCodes:selected, addr:patient.addr } });
+    dispatch({ type:'SAVE_ICD', payload:{ patientId:patient.id, patientName:patient.name, icdCodes:selected, addr:patient.addr, adl: adlScore !== '' ? Number(adlScore) : undefined } });
   };
 
-  const resetPatient = (p) => { setPatient(p); setCodes(null); setNote(''); setSaved(false); setStatus(null); setSelected([]); setWelfareAnim(0); setWelfareUnlocked([]); };
+  const adlNum = adlScore !== '' ? Number(adlScore) : null;
+  const adlLabel = adlNum === null ? null : adlNum <= 6 ? '🔴 ติดเตียง' : adlNum <= 12 ? '🟡 ติดบ้าน' : '🟢 ช่วยตัวเองได้';
+  const adlColor = adlNum === null ? null : adlNum <= 6 ? '#991B1B' : adlNum <= 12 ? '#92400E' : '#166534';
+  const adlBg    = adlNum === null ? null : adlNum <= 6 ? '#FEE2E2' : adlNum <= 12 ? '#FEF3C7' : '#DCFCE7';
+
+  const resetPatient = (p) => { setPatient(p); setCodes(null); setNote(''); setSaved(false); setStatus(null); setSelected([]); setAdlScore(''); setWelfareAnim(0); setWelfareUnlocked([]); };
 
   const statusClass = status?.type === 'ok' ? 'status-ok' : status?.type === 'err' ? 'status-err' : status?.type === 'warn' ? 'status-warn' : 'status-info';
 
@@ -254,6 +260,31 @@ export default function CodingTab() {
             placeholder="พิมพ์หรือพูด clinical note ที่นี่...&#10;&#10;เช่น: ผู้ป่วยชายอายุ 72 ปี มาด้วยอาการปวดหัวเข่าข้างขวาเรื้อรัง 3 เดือน เดินลำบาก ตรวจพบ crepitus บริเวณ knee joint น้ำหนักเกิน BMI 28"
           />
 
+          {/* ADL Score input */}
+          <div style={{ marginTop:14, padding:'12px 14px', borderRadius:14, background:'#F8FAFC', border:'1.5px solid #E8F0ED' }}>
+            <p style={{ fontSize:11, fontWeight:700, color:'#9BBCAF', textTransform:'uppercase', letterSpacing:'0.6px', marginBottom:8 }}>
+              Barthel ADL Score (พยาบาลบันทึก) — เงื่อนไข Trigger สิทธิ์
+            </p>
+            <div style={{ display:'flex', alignItems:'center', gap:10 }}>
+              <input
+                type="number" min="0" max="20"
+                className="field-input"
+                style={{ width:72 }}
+                value={adlScore}
+                onChange={e => setAdlScore(e.target.value)}
+                placeholder="0–20"
+              />
+              {adlLabel && (
+                <div style={{ padding:'5px 14px', borderRadius:10, fontSize:13, fontWeight:700, background:adlBg, color:adlColor }}>
+                  {adlLabel}
+                </div>
+              )}
+              {!adlScore && (
+                <span style={{ fontSize:12, color:'#C4D9D0' }}>ยังไม่ได้กรอก (สิทธิ์อาจไม่ถูก trigger)</span>
+              )}
+            </div>
+          </div>
+
           {/* Status */}
           {status && (
             <div className={`status-msg ${statusClass} anim-slide-right`} style={{ marginTop: 12 }}>
@@ -334,6 +365,17 @@ export default function CodingTab() {
                     <div className="conf-bar" style={{ '--w': `${c.confidence}%`, background: `linear-gradient(90deg,${confColor(c.confidence)}80,${confColor(c.confidence)})` }} />
                   </div>
                   <p style={{ fontSize: 12, color: '#6B9A87', lineHeight: 1.5 }}>{c.reason}</p>
+                  {/* ADL threshold check */}
+                  {adlNum !== null && (() => {
+                    const w = matchIcd(c.code);
+                    if (!w?.adlThreshold) return null;
+                    const met = adlNum <= w.adlThreshold;
+                    return (
+                      <div style={{ marginTop:6, fontSize:11, fontWeight:700, color: met ? '#0F6E56' : '#DC2626', background: met ? '#F0FDF9' : '#FEF2F2', borderRadius:8, padding:'4px 10px', display:'inline-block' }}>
+                        {met ? `✅ ADL ${adlNum} ≤ ${w.adlThreshold} — threshold ผ่าน → Tier: ${w.tier}` : `❌ ADL ${adlNum} > ${w.adlThreshold} — ไม่ถึงเกณฑ์ (Tier: ${w.tier})`}
+                      </div>
+                    );
+                  })()}
                 </div>
               ))}
 
