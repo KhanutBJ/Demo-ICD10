@@ -1,6 +1,6 @@
 'use client';
 import { useState, useRef } from 'react';
-import { useWelfare, matchIcd, ICD_MAP } from '../context/WelfareContext';
+import { useWelfare, matchIcd } from '../context/WelfareContext';
 
 const GROQ_ASR_KEY = process.env.NEXT_PUBLIC_GROQ_ASR_KEY;
 const GROQ_LLM_KEY = process.env.NEXT_PUBLIC_GROQ_LLM_KEY;
