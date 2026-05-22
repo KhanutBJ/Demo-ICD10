@@ -36,14 +36,15 @@ const BENEFITS = {
   ],
 };
 
-const STATE_ORDER = ['pending','eligible','active','hold','ended'];
+const STATE_ORDER = ['pending','eligible','active','suspended','renewed','terminated'];
 
 const STATES = [
-  { id:'pending',  label:'Pending',       icon:'⏳', cls:'' },
-  { id:'eligible', label:'Eligible',      icon:'✔️', cls:'passed' },
-  { id:'active',   label:'Active Paying', icon:'💚', cls:'active' },
-  { id:'hold',     label:'Suspended',     icon:'⏸️', cls:'hold' },
-  { id:'ended',    label:'Terminated',    icon:'🔴', cls:'ended' },
+  { id:'pending',    label:'Pending',    icon:'⏳', cls:'' },
+  { id:'eligible',   label:'Eligible',   icon:'✔️', cls:'passed' },
+  { id:'active',     label:'Active',     icon:'💚', cls:'active' },
+  { id:'suspended',  label:'Suspended',  icon:'⏸️', cls:'hold' },
+  { id:'renewed',    label:'Renewed',    icon:'🔄', cls:'active' },
+  { id:'terminated', label:'Terminated', icon:'🔴', cls:'ended' },
 ];
 
 const TIMELINE = {
@@ -88,7 +89,8 @@ export default function WelfareTab() {
   const currentState = p.state || 'pending';
   const currentIdx   = STATE_ORDER.indexOf(currentState);
 
-  const suspend = () => dispatch({ type:'SET_STATE', patientId:pid, newState: currentState==='hold' ? 'active' : 'hold' });
+  const nextState = currentState === 'active' ? 'suspended' : currentState === 'suspended' ? 'renewed' : 'active';
+  const suspend = () => dispatch({ type:'SET_STATE', patientId:pid, newState: nextState });
 
   return (
     <div>
@@ -112,8 +114,8 @@ export default function WelfareTab() {
             <div style={{ width:32, height:32, borderRadius:10, background:'linear-gradient(135deg,#0F6E56,#17A97E)', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>🛡️</div>
             <span style={{ fontWeight:700, fontSize:15, color:'#1A2E28' }}>Welfare State Machine</span>
           </div>
-          <button onClick={suspend} className="touch-active" style={{ padding:'8px 16px', borderRadius:12, border:'none', cursor:'pointer', background: currentState==='hold' ? 'linear-gradient(135deg,#0F6E56,#17A97E)' : 'linear-gradient(135deg,#DC2626,#EF4444)', color:'white', fontSize:13, fontWeight:700 }}>
-            {currentState==='hold' ? '▶ Reactivate สิทธิ์' : '⏸ Suspend สิทธิ์'}
+          <button onClick={suspend} className="touch-active" style={{ padding:'8px 16px', borderRadius:12, border:'none', cursor:'pointer', background: currentState==='suspended' ? 'linear-gradient(135deg,#6366F1,#818CF8)' : currentState==='renewed' ? 'linear-gradient(135deg,#DC2626,#EF4444)' : 'linear-gradient(135deg,#DC2626,#EF4444)', color:'white', fontSize:13, fontWeight:700 }}>
+            {currentState==='suspended' ? '🔄 Renew สิทธิ์' : currentState==='renewed' ? '⏸ Suspend สิทธิ์' : '⏸ Suspend สิทธิ์'}
           </button>
         </div>
 
@@ -148,7 +150,7 @@ export default function WelfareTab() {
         {p.ttl && (
           <div style={{ marginTop:14, padding:'10px 16px', borderRadius:14, background:'#FFF7E0', border:'1px solid #F59E0B40', display:'flex', alignItems:'center', gap:10 }}>
             <span style={{ fontSize:18 }}>⏰</span>
-            <p style={{ fontSize:13, color:'#92400E' }}>TTL: เหลืออีก <strong>{p.ttl} วัน</strong> — ระบบจะส่ง Alert ให้ อสม. รีวิว ADL ใหม่อัตโนมัติ</p>
+            <p style={{ fontSize:13, color:'#92400E' }}>TTL: เหลืออีก <strong>{p.ttl} วัน</strong> — ระบบจะส่ง Alert ให้ Care Manager รีวิว ADL อัตโนมัติ (review_required_by)</p>
           </div>
         )}
       </div>
@@ -204,9 +206,9 @@ export default function WelfareTab() {
           )}
 
           {/* Locked state note */}
-          {p.icd === 'F03' && (
+          {(p.icd === 'F03' || p.icd === 'F01') && (
             <div style={{ marginTop:12, padding:'10px 14px', borderRadius:12, background:'#F0FDF9', border:'1px solid #A7D9C6', fontSize:12, color:'#0F6E56' }}>
-              🔒 สิทธิ์ถูก <strong>ล็อกถาวร</strong> — ต้องมีผู้ดูแลยืนยันก่อนจึงจะระงับได้ (Dementia Protocol)
+              🔒 Tier: <strong>DEMENTIA_LONGTERM</strong> — สิทธิ์ล็อกถาวร ต้องมีผู้ดูแลยืนยันก่อนจะระงับได้ (Dementia Protocol)
             </div>
           )}
         </div>

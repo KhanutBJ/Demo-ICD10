@@ -14,14 +14,14 @@ const STAGES = [
     title:'Privacy Shield', sub:'PDPA Tokenization',
     detail:'SHA-256 เข้ารหัสเลขบัตร / ลบชื่อโรค / เหลือแค่ Flag',
     payloadLabel:'✅ Anonymized Token — ปลอดภัยตาม PDPA',
-    payload:`{\n  "secure_token": "e3b0c44298fc1c149a...",\n  "welfare_flags": {\n    "tier": "DEPENDENT_BEDRIDDEN",\n    "diaper_eligible": true,\n    "caregiver_eligible": true,\n    "ttl": "PERMANENT"\n  }\n}`,
+    payload:`{\n  "schema_version": "1.0",\n  "secure_token_id": "e3b0c44298fc1c149a...",\n  "welfare_trigger": {\n    "tier": "STROKE_DEPENDENT",\n    "ttl_days": 180,\n    "review_required_by": "2026-11-17"\n  },\n  "geographic_routing": {\n    "tambon_code": "210905"\n  }\n}`,
   },
   {
     id:'gateway', icon:'☁️', color:'#0EA5E9',
     title:'DGA API Gateway', sub:'จับคู่ทะเบียนราษฎร์',
-    detail:'ตรวจซ้ำ → State Machine: Eligible → Active_Paying',
+    detail:'ตรวจซ้ำ → State Machine: Eligible → Active',
     payloadLabel:'✅ State Update',
-    payload:`{\n  "citizen_matched": true,\n  "duplicate_check": "CLEAR",\n  "new_state": "ACTIVE_PAYING",\n  "benefits_unlocked": [\n    "DIAPER_3PCS_DAY",\n    "CAREGIVER_ALLOWANCE",\n    "MEDICAL_DEVICE_LOAN"\n  ]\n}`,
+    payload:`{\n  "citizen_matched": true,\n  "duplicate_check": "CLEAR",\n  "new_state": "ACTIVE",\n  "tier": "STROKE_DEPENDENT",\n  "benefits_unlocked": [\n    "DIAPER_3PCS_DAY",\n    "CAREGIVER_ALLOWANCE",\n    "MEDICAL_DEVICE_LOAN"\n  ],\n  "ledger_entry": "APPEND_ONLY"\n}`,
   },
   {
     id:'delivery', icon:'💳', color:'#17A97E',
@@ -130,7 +130,7 @@ export default function PipelineTab() {
               {isEx ? 'Exception ถูกตรวจพบ — Alert ส่ง อสม. แล้ว!' : 'Pipeline สำเร็จ — สิทธิ์ถึงเตียงผู้ป่วยอัตโนมัติ!'}
             </p>
             <p style={{ fontSize:13, color:isEx?'#B91C1C':'#166534', marginTop:2 }}>
-              {isEx ? 'บัญชีปิด → อสม. รับ Alert → จะเดินเท้าไปผูก PromptPay ที่บ้าน' : 'ICD-10 → Token → DGA → Active_Paying → PromptPay โอนเงินในรอบถัดไป'}
+              {isEx ? 'บัญชีปิด → อสม. รับ Alert → จะเดินเท้าไปผูก PromptPay ที่บ้าน' : 'ICD-10 → Tokenize → DGA → State: Active → Work Order ส่ง อปท. + SMS ญาติ'}
             </p>
           </div>
         </div>
