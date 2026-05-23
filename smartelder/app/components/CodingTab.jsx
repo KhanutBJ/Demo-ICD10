@@ -54,6 +54,7 @@ export default function CodingTab() {
   const [selected, setSelected] = useState([]);
   const [status, setStatus]     = useState(null);
   const [saved, setSaved]       = useState(false);
+  const [referralId, setReferralId] = useState(null);
   const [adlScore, setAdlScore]       = useState('');
   const [welfareAnim, setWelfareAnim] = useState(0);
   const [welfareUnlocked, setWelfareUnlocked] = useState([]);
@@ -162,6 +163,8 @@ export default function CodingTab() {
       selected.flatMap(code => suggestAgencies(code, matchIcd(code)?.tier))
     )];
     const depts = getDepts(selected);
+    const rfId = `RF-${Date.now()}`;
+    setReferralId(rfId);
     // Dispatch to global context
     dispatch({ type:'SAVE_ICD', payload:{ patientId:patient.id, patientName:patient.name, icdCodes:selected, addr:patient.addr, adl: adlScore !== '' ? Number(adlScore) : undefined, agencies: allAgencies, departments: depts } });
   };
@@ -171,7 +174,7 @@ export default function CodingTab() {
   const adlColor = adlNum === null ? null : adlNum <= 6 ? '#991B1B' : adlNum <= 12 ? '#92400E' : '#166534';
   const adlBg    = adlNum === null ? null : adlNum <= 6 ? '#FEE2E2' : adlNum <= 12 ? '#FEF3C7' : '#DCFCE7';
 
-  const resetPatient = (p) => { setPatient(p); setCodes(null); setNote(''); setSaved(false); setStatus(null); setSelected([]); setAdlScore(''); setWelfareAnim(0); setWelfareUnlocked([]); };
+  const resetPatient = (p) => { setPatient(p); setCodes(null); setNote(''); setSaved(false); setStatus(null); setSelected([]); setAdlScore(''); setWelfareAnim(0); setWelfareUnlocked([]); setReferralId(null); };
 
   const statusClass = status?.type === 'ok' ? 'status-ok' : status?.type === 'err' ? 'status-err' : status?.type === 'warn' ? 'status-warn' : 'status-info';
 
@@ -474,6 +477,15 @@ export default function CodingTab() {
           )}
           {welfareAnim >= 3 && welfareUnlocked.length === 0 && (
             <p style={{ fontSize:12, color:'#9BBCAF' }}>รหัส ICD ที่เลือกไม่ตรงกับเงื่อนไขสิทธิ์พิเศษ — อยู่ในสิทธิ์บัตรทองปกติ</p>
+          )}
+          {welfareAnim >= 2 && referralId && (
+            <div className="anim-fade-up" style={{ marginTop:12, padding:'10px 14px', borderRadius:12, background:'linear-gradient(135deg,#EFF6FF,#F5F3FF)', border:'1.5px solid #C7D2FE', display:'flex', alignItems:'center', gap:10 }}>
+              <span style={{ fontSize:18 }}>🔀</span>
+              <div>
+                <p style={{ fontSize:12, fontWeight:800, color:'#4338CA' }}>Auto-Referral ส่งไป สปสช. แล้ว!</p>
+                <p style={{ fontSize:10, color:'#818CF8', marginTop:1 }}>Ticket ID: <strong>{referralId}</strong> — ดูใน Referral Hub</p>
+              </div>
+            </div>
           )}
         </div>
       )}

@@ -8,6 +8,7 @@ const PipelineTab  = dynamic(() => import('./components/PipelineTab'),  { ssr: f
 const WelfareTab   = dynamic(() => import('./components/WelfareTab'),   { ssr: false });
 const VHVTab       = dynamic(() => import('./components/VHVTab'),       { ssr: false });
 const LastMileTab  = dynamic(() => import('./components/LastMileTab'),  { ssr: false });
+const ReferralHub  = dynamic(() => import('./components/ReferralHub'),  { ssr: false });
 const RightsTab    = dynamic(() => import('./components/RightsTab'),    { ssr: false });
 const DashboardTab = dynamic(() => import('./components/DashboardTab'), { ssr: false });
 const IntroPage    = dynamic(() => import('./components/IntroPage'),    { ssr: false });
@@ -18,6 +19,7 @@ const TABS = [
   { id: 'welfare',   emoji: '🛡️', label: 'สิทธิ์ผู้ป่วย',  sub: 'State Machine' },
   { id: 'vhv',       emoji: '🏘️', label: 'อปท. Last-Mile',  sub: 'Work Orders' },
   { id: 'lastmile',  emoji: '📦', label: 'Care Flow',        sub: 'Agent + Tracking' },
+  { id: 'referral',  emoji: '🔀', label: 'Referral Hub',     sub: 'Auto-Referral' },
   { id: 'dashboard', emoji: '📊', label: 'ภาพรวมระบบ',     sub: 'Analytics' },
   { id: 'rights',    emoji: '💬', label: 'สิทธิ์ AI',        sub: 'Rights Bot' },
 ];
@@ -124,6 +126,7 @@ function HomeInner() {
           {active === 'welfare'   && <WelfareTab />}
           {active === 'vhv'       && <VHVTab />}
           {active === 'lastmile'  && <LastMileTab />}
+          {active === 'referral'  && <ReferralHub />}
           {active === 'dashboard' && <DashboardTab />}
           {active === 'rights'    && <RightsTab />}
         </div>

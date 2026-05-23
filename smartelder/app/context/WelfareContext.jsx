@@ -36,6 +36,13 @@ const INIT = {
     { id:'A002', type:'review', icon:'⏰', title:'TTL ครบกำหนด — รีวิว ADL', patient:'นาย สมชาย ใจดี', patientId:'P001', addr:'88 ถ.พระราม 2 บางขุนเทียน', action:'ประเมิน Barthel ADL', status:'pending', time:'1 ชั่วโมงที่แล้ว' },
   ],
   savedCount: 2,
+  referrals: [
+    { id:'RF-001', patientId:'P001', icd:'I63.9', tier:'STROKE_DEPENDENT',  adl:3,  services:['Caregiver','ผ้าอ้อมฟรี','อุปกรณ์การแพทย์'],      routedTo:['สปสช.','กปท.','LTC Fund'],              status:'assigned',     cm:'น.ส.วาสนา ดูแลดี',    createdAt:'20 พ.ค. 2568', daysOpen:3 },
+    { id:'RF-002', patientId:'P003', icd:'I50.0', tier:'CARDIAC_DEPENDENT', adl:6,  services:['Caregiver','ผ้าอ้อมฟรี','Palliative Care'],         routedTo:['สปสช.','LTC Fund'],                     status:'acknowledged', cm:null,                  createdAt:'19 พ.ค. 2568', daysOpen:4 },
+    { id:'RF-003', patientId:'P005', icd:'F03',   tier:'DEMENTIA_LONGTERM', adl:5,  services:['Care Plan (LTC Fund)','อุปกรณ์การแพทย์','ผ้าอ้อมฟรี'], routedTo:['สปสช.','LTC Fund','อปท.'],            status:'assigned',     cm:'นายประสิทธิ์ ใส่ใจ',  createdAt:'18 พ.ค. 2568', daysOpen:5 },
+    { id:'RF-004', patientId:'P002', icd:'M17.1', tier:'CHRONIC',           adl:14, services:['ตรวจสุขภาพประจำปี','ยาแก้ปวดข้อ'],                  routedTo:['สปสช.','รพ.สต.'],                       status:'resolved',     cm:'น.ส.สุมาลี ใส่ใจ',   createdAt:'15 พ.ค. 2568', daysOpen:0 },
+    { id:'RF-005', patientId:'P004', icd:'S72.0', tier:'FRACTURE_TEMPORARY',adl:9,  services:['อุปกรณ์ชั่วคราว','กายภาพบำบัด'],                   routedTo:['กองทุนฟื้นฟูจังหวัด','อปท.'],           status:'new',          cm:null,                  createdAt:'21 พ.ค. 2568', daysOpen:2 },
+  ],
 };
 
 /* ── Reducer ───────────────────────────────── */
@@ -58,10 +65,25 @@ function reducer(state, action) {
         newAlerts.push({ id:`A${Date.now()+1}`, type:'review', icon:'⏰', title:`TTL ${welfare.ttl} วัน — จัดการรีวิว ADL`, patient:patientName, patientId, addr, action:`รีวิว ADL หลัง ${welfare.ttl} วัน`, status:'pending', time:`ครบกำหนดใน ${welfare.ttl} วัน` });
       }
 
+      const newReferral = {
+        id: `RF-${Date.now()}`,
+        patientId,
+        icd: matchedIcd,
+        tier: welfare.tier,
+        adl: adl ?? null,
+        services: welfare.benefits.map(b => b.name),
+        routedTo: action.payload.agencies || [],
+        status: 'new',
+        cm: null,
+        createdAt: now,
+        daysOpen: 0,
+      };
+
       return {
         ...state,
         patients: { ...state.patients, [patientId]: { ...state.patients[patientId], state:welfare.state, icd:matchedIcd, adl: adl !== undefined ? adl : (state.patients[patientId]?.adl ?? null), locked:!!welfare.locked, ttl:welfare.ttl||null, benefits:welfare.benefits, suggestedAgencies: action.payload.agencies || state.patients[patientId]?.suggestedAgencies || [], departments: action.payload.departments || state.patients[patientId]?.departments || [], timeline:[{date:now,event:`ICD-10: ${matchedIcd} บันทึกจาก AI Coder${adl !== undefined ? ` (ADL: ${adl})` : ''}`,type:'ok'},{date:now,event:`Tier: ${welfare.tier} → State: ${welfare.state==='active'?'Active':'Eligible'}`,type:'ok'},...(state.patients[patientId]?.timeline||[])] } },
         alerts: newAlerts,
+        referrals: [newReferral, ...(state.referrals || [])],
         savedCount: state.savedCount + 1,
       };
     }
@@ -83,6 +105,9 @@ function reducer(state, action) {
 
     case 'CLOSE_ALERT':
       return { ...state, alerts: state.alerts.map(a => a.id===action.id ? {...a,status:'done'} : a) };
+
+    case 'UPDATE_REFERRAL':
+      return { ...state, referrals: (state.referrals||[]).map(r => r.id===action.id ? {...r,...action.updates} : r) };
 
     default: return state;
   }
