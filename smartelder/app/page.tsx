@@ -2,132 +2,79 @@
 import { useState } from 'react';
 import dynamic from 'next/dynamic';
 
-const CodingTab    = dynamic(() => import('./components/CodingTab'),    { ssr: false });
-const PipelineTab  = dynamic(() => import('./components/PipelineTab'),  { ssr: false });
-const WelfareTab   = dynamic(() => import('./components/WelfareTab'),   { ssr: false });
-const VHVTab       = dynamic(() => import('./components/VHVTab'),       { ssr: false });
-const DashboardTab = dynamic(() => import('./components/DashboardTab'), { ssr: false });
+const HISGatewayTab = dynamic(() => import('./components/HISGatewayTab'), { ssr: false });
+const ReferralTab   = dynamic(() => import('./components/ReferralTab'),   { ssr: false });
+const AIAgentTab    = dynamic(() => import('./components/AIAgentTab'),    { ssr: false });
+const VHVTab        = dynamic(() => import('./components/VHVTab'),        { ssr: false });
+const InsightsTab   = dynamic(() => import('./components/InsightsTab'),   { ssr: false });
 
 const TABS = [
-  { id: 'coding',    emoji: '🏥', label: 'บันทึก ICD-10',  sub: 'AI Coding' },
-  { id: 'pipeline',  emoji: '🔗', label: 'PWL Pipeline',   sub: 'Data Flow' },
-  { id: 'welfare',   emoji: '🛡️', label: 'สิทธิ์ผู้ป่วย',  sub: 'State Machine' },
-  { id: 'vhv',       emoji: '📱', label: 'แดชบอร์ด อสม.', sub: 'Last-Mile' },
-  { id: 'dashboard', emoji: '📊', label: 'ภาพรวมระบบ',     sub: 'Analytics' },
+  { id: 'his',       label: 'HIS Gateway' },
+  { id: 'referral',  label: 'Auto-Referral' },
+  { id: 'agent',     label: 'AI Agent' },
+  { id: 'vhv',       label: 'อสม. Monitor' },
+  { id: 'insights',  label: 'Insights' },
 ];
 
 export default function HomePage() {
-  const [active, setActive] = useState('coding');
+  const [active, setActive] = useState('referral');
   const now = new Date().toLocaleDateString('th-TH', {
-    weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+    weekday: 'short', year: 'numeric', month: 'short', day: 'numeric',
   });
 
   return (
-    <div style={{ minHeight: '100vh', background: '#F0F7F4' }}>
-
-      {/* ── HEADER ───────────────────────────────────────── */}
-      <header className="app-header" style={{ position: 'sticky', top: 0, zIndex: 50 }}>
-        <div style={{ maxWidth: 1200, margin: '0 auto', padding: '0 20px' }}>
-
-          {/* Top bar */}
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '14px 0 10px' }}>
-            {/* Logo */}
+    <div style={{ minHeight: '100vh', background: 'var(--surface-2)' }}>
+      <header style={{ position: 'sticky', top: 0, zIndex: 50, background: '#00B87C', color: 'white', boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06)' }}>
+        <div style={{ maxWidth: 1320, margin: '0 auto', padding: '0 24px' }}>
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '16px 0 14px' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-              <div style={{
-                width: 44, height: 44, borderRadius: 14,
-                background: 'rgba(255,255,255,0.18)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 22, backdropFilter: 'blur(6px)',
-                border: '1px solid rgba(255,255,255,0.25)',
-              }}>🏥</div>
+              <div style={{ width: 36, height: 36, borderRadius: 8, background: 'linear-gradient(135deg, #00D08A, #00A36D)', display: 'flex', alignItems: 'center', justifyContent: 'center', boxShadow: '0 2px 4px rgba(0,0,0,0.2)' }}>
+                <svg width="20" height="20" viewBox="0 0 18 18" fill="none"><rect x="7.5" y="2" width="3" height="14" rx="1.5" fill="white"/><rect x="2" y="7.5" width="14" height="3" rx="1.5" fill="white"/></svg>
+              </div>
               <div>
-                <div style={{ color: 'white', fontWeight: 800, fontSize: 18, lineHeight: 1.2, letterSpacing: '-0.3px' }}>
-                  Synape x Right
-                </div>
-                <div style={{ color: 'rgba(255,255,255,0.65)', fontSize: 11, fontWeight: 500 }}>
-                  ระบบ AI คุ้มครองสิทธิ์ผู้สูงอายุ
-                </div>
+                <div style={{ fontWeight: 800, fontSize: 16, color: 'white', letterSpacing: '-0.2px' }}>Synapse x Right</div>
+                <div style={{ fontSize: 12, color: '#94A3B8', fontWeight: 500 }}>LTC AI Agent Platform</div>
               </div>
             </div>
-
-            {/* Right info */}
-            <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
-              <div style={{ textAlign: 'right', display: 'none' }} className="sm-show">
-                <div style={{ color: 'rgba(255,255,255,0.7)', fontSize: 11 }}>{now}</div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: 6, justifyContent: 'flex-end', marginTop: 2 }}>
-                  <span className="glow-status" style={{ width: 8, height: 8, borderRadius: '50%', background: '#4ADE80', display: 'inline-block' }} />
-                  <span style={{ color: 'rgba(255,255,255,0.85)', fontSize: 11, fontWeight: 600 }}>ระบบออนไลน์</span>
-                </div>
-              </div>
-              <div style={{
-                width: 40, height: 40, borderRadius: '50%',
-                background: 'rgba(255,255,255,0.18)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, cursor: 'pointer',
-                border: '1px solid rgba(255,255,255,0.25)',
-                transition: 'background 0.2s',
-              }}>👨‍⚕️</div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+              <span className="sm-show" style={{ fontSize: 13, color: '#E6F9F3', fontWeight: 500 }}>{now}</span>
+              <span style={{ fontSize: 12, fontWeight: 700, padding: '4px 10px', background: 'rgba(255, 255, 255, 0.2)', color: 'white', borderRadius: 999, border: '1px solid rgba(255, 255, 255, 0.3)' }}>● ระบบพร้อมใช้งาน</span>
             </div>
           </div>
-
-          {/* Tab bar */}
-          <div style={{ display: 'flex', borderTop: '1px solid rgba(255,255,255,0.12)', marginTop: 2 }}>
+          <div style={{ display: 'flex', gap: 24, marginTop: 4 }}>
             {TABS.map(t => (
               <button key={t.id} onClick={() => setActive(t.id)}
-                className={`tab-btn${active === t.id ? ' active' : ''}`}>
-                <span style={{ fontSize: 18 }}>{t.emoji}</span>
-                <span style={{ fontSize: 12 }}>{t.label}</span>
+                style={{
+                  background: 'none', border: 'none', padding: '10px 0 14px', cursor: 'pointer',
+                  color: active === t.id ? 'white' : 'rgba(255,255,255,0.7)',
+                  fontWeight: active === t.id ? 700 : 500,
+                  fontSize: 14,
+                  borderBottom: active === t.id ? '3px solid white' : '3px solid transparent',
+                  transition: '0.2s',
+                }}>
+                <span>{t.label}</span>
               </button>
             ))}
           </div>
         </div>
       </header>
 
-      {/* ── MAIN ─────────────────────────────────────────── */}
-      <main style={{ maxWidth: 1200, margin: '0 auto', padding: '28px 20px 60px' }}>
-
-        {/* Page title */}
-        <div style={{ marginBottom: 24, display: 'flex', alignItems: 'center', gap: 10 }}>
-          {TABS.filter(t => t.id === active).map(t => (
-            <div key={t.id} style={{ display: 'flex', alignItems: 'center', gap: 10 }} className="anim-fade-in">
-              <div style={{
-                width: 38, height: 38, borderRadius: 12,
-                background: 'linear-gradient(135deg,#0F6E56,#17A97E)',
-                display: 'flex', alignItems: 'center', justifyContent: 'center',
-                fontSize: 18, boxShadow: '0 4px 12px rgba(15,110,86,0.25)',
-              }}>{t.emoji}</div>
-              <div>
-                <h1 style={{ fontSize: 22, fontWeight: 800, color: '#0F6E56', lineHeight: 1.2 }}>{t.label}</h1>
-                <p style={{ fontSize: 12, color: '#6B9A87', fontWeight: 500 }}>{t.sub}</p>
-              </div>
-            </div>
-          ))}
-        </div>
-
-        {/* Content */}
+      <main style={{ maxWidth: 1320, margin: '0 auto', padding: '20px 24px 60px' }}>
         <div className="anim-fade-up">
-          {active === 'coding'    && <CodingTab />}
-          {active === 'pipeline'  && <PipelineTab />}
-          {active === 'welfare'   && <WelfareTab />}
+          {active === 'his'       && <HISGatewayTab />}
+          {active === 'referral'  && <ReferralTab />}
+          {active === 'agent'     && <AIAgentTab />}
           {active === 'vhv'       && <VHVTab />}
-          {active === 'dashboard' && <DashboardTab />}
+          {active === 'insights'  && <InsightsTab />}
         </div>
       </main>
 
-      {/* ── FOOTER ───────────────────────────────────────── */}
-      <footer style={{
-        borderTop: '1px solid #D1E8DF',
-        background: 'rgba(255,255,255,0.7)',
-        backdropFilter: 'blur(8px)',
-        padding: '18px 20px',
-        textAlign: 'center',
-      }}>
-        <p style={{ color: '#6B9A87', fontSize: 13 }}>
-          <strong style={{ color: '#0F6E56' }}>Synape x Right</strong>
-          {' '}— พัฒนาเพื่อคุ้มครองสิทธิ์ผู้สูงอายุไทย ลดคอขวด ICD-10 coding
+      <footer style={{ background: '#0F172A', padding: '24px 24px', textAlign: 'center', borderTop: '1px solid #1E293B' }}>
+        <p style={{ color: '#64748B', fontSize: 13, fontWeight: 500 }}>
+          <strong style={{ color: 'white' }}>ระบบบูรณาการสิทธิ์ผ้าอ้อมผู้ใหญ่ (Diaper Auto-Referral)</strong> — กองทุนหลักประกันสุขภาพแห่งชาติ
         </p>
-        <p style={{ color: '#9BBCAF', fontSize: 11, marginTop: 4 }}>
-          Groq Whisper large-v3 + Qwen3-32b • สปสช. โทร 1330
+        <p style={{ color: '#475569', fontSize: 11, marginTop: 6 }}>
+          © 2026 National Health Security Office. All rights reserved.
         </p>
       </footer>
     </div>
