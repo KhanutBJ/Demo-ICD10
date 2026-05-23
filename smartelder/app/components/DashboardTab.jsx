@@ -1,6 +1,9 @@
 'use client';
+import dynamic from 'next/dynamic';
 import { useWelfare, matchIcd } from '../context/WelfareContext';
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell, ReferenceLine } from 'recharts';
+
+const HospitalHeatmap = dynamic(() => import('./HospitalHeatmap'), { ssr: false });
 
 const DATA = [
   { name:'รพ.บางมด',         rate:8,  status:'ดี',    color:'#0F6E56', bg:'#F0FDF9' },
@@ -111,6 +114,11 @@ export default function DashboardTab() {
             <div style={{ fontSize:11, color:'#9BBCAF', marginTop:2 }}>{m.sub}</div>
           </div>
         ))}
+      </div>
+
+      {/* Hospital Heatmap */}
+      <div style={{ marginBottom: 20 }}>
+        <HospitalHeatmap />
       </div>
 
       {/* Alert */}
