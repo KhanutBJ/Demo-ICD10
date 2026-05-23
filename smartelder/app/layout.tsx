@@ -2,11 +2,11 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "Synape x Right — ระบบ AI คุ้มครองสิทธิ์ผู้สูงอายุ",
-  description: "ระบบ AI อัจฉริยะสำหรับโรงพยาบาลไทย ลดคอขวดการ coding ICD-10 และคุ้มครองสิทธิ์ผู้สูงอายุ",
-  keywords: ["ICD-10", "AI", "โรงพยาบาล", "ผู้สูงอายุ", "บัตรทอง", "สาธารณสุขไทย"],
+  title: "LaPooPoo — ระบบประสานงานคุ้มครองสิทธิ",
+  description: "ระบบ AI อัจฉริยะสำหรับโรงพยาบาลไทย ลดคอขวดการ coding ICD-10 และประสานงานคุ้มครองสิทธิ์ผู้สูงอายุ",
+  keywords: ["ICD-10", "AI", "โรงพยาบาล", "ผู้สูงอายุ", "บัตรทอง", "สาธารณสุขไทย", "LaPooPoo"],
   openGraph: {
-    title: "Synape x Right",
+    title: "LaPooPoo",
     description: "AI-powered medical coding & elderly rights protection",
     type: "website",
   },

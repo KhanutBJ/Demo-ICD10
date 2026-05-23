@@ -50,24 +50,28 @@ export default function ReferralTab() {
                   {/* Abstract map shape (Bangkok/Central area representation) */}
                   <path d="M150,50 Q200,20 250,50 T300,100 T320,200 T280,300 T200,350 T100,280 T80,180 Z" fill="rgba(0, 184, 124, 0.1)" stroke="#00B87C" strokeWidth="2" strokeDasharray="5,5"/>
                   
-                  {/* Glowing Health Center Dots */}
+                  {/* Health Centers (Large Dots) */}
                   {[
-                    { cx: 180, cy: 120, color: '#FF6B6B', size: 12, label: 'ศูนย์ 1 (แดง)' },
-                    { cx: 240, cy: 160, color: '#06D6A0', size: 16, label: 'ศูนย์ 2 (เขียว)' },
-                    { cx: 210, cy: 220, color: '#FFD166', size: 14, label: 'ศูนย์ 3 (เหลือง)' },
-                    { cx: 160, cy: 260, color: '#4B8BFF', size: 20, label: 'ศูนย์ 4 (ฟ้า)' },
-                    { cx: 270, cy: 250, color: '#06D6A0', size: 10, label: 'ศูนย์ 5 (เขียว)' }
+                    { cx: 180, cy: 120, color: 'rgba(255,255,255,0.2)', size: 30, label: 'ศูนย์ 1' },
+                    { cx: 240, cy: 160, color: 'rgba(255,255,255,0.2)', size: 40, label: 'ศูนย์ 2' },
+                    { cx: 160, cy: 260, color: 'rgba(255,255,255,0.2)', size: 50, label: 'ศูนย์ 4' },
                   ].map((dot, i) => (
-                    <g key={i}>
-                      <circle cx={dot.cx} cy={dot.cy} r={dot.size} fill={dot.color} opacity="0.8" />
-                      <circle cx={dot.cx} cy={dot.cy} r={dot.size * 2} fill={dot.color} opacity="0.2" className="anim-pulse" style={{ animation: `pulseBorder 2s infinite ${i * 0.5}s` }} />
-                      <text x={dot.cx + dot.size + 8} y={dot.cy + 4} fill="white" fontSize="11" fontWeight="600" fontFamily="Prompt">{dot.label}</text>
+                    <g key={`center-${i}`}>
+                      <circle cx={dot.cx} cy={dot.cy} r={dot.size} fill={dot.color} className="anim-pulse" style={{ animation: `pulseBorder 3s infinite ${i * 0.5}s` }} />
+                      <text x={dot.cx - 15} y={dot.cy + 4} fill="rgba(255,255,255,0.6)" fontSize="11" fontWeight="600" fontFamily="Prompt">{dot.label}</text>
                     </g>
                   ))}
+
+                  {/* BKK Districts overlay */}
+                  <g stroke="#00B87C" strokeWidth="1" fill="none" opacity="0.3">
+                    <path d="M 200 200 Q 300 150 400 250 T 500 400 T 300 500 Z" />
+                    <path d="M 400 250 Q 500 200 600 300 T 500 400" />
+                    <path d="M 200 200 Q 150 300 200 400 T 300 500" />
+                  </g>
                 </svg>
                 <div style={{ position: 'absolute', bottom: 10, left: 10, right: 10, background: 'rgba(255,255,255,0.1)', padding: '10px 14px', borderRadius: 8, backdropFilter: 'blur(4px)' }}>
-                  <div style={{ color: 'white', fontSize: 13, fontWeight: 700 }}>ความหนาแน่นผู้รอรับสิทธิ์</div>
-                  <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 2 }}>อัปเดตแบบ Real-time ตามเขตศูนย์บริการสาธารณสุข</div>
+                  <div style={{ color: 'white', fontSize: 13, fontWeight: 700 }}>สรุปภาพรวมพื้นที่ศูนย์อนามัย</div>
+                  <div style={{ color: '#94A3B8', fontSize: 11, marginTop: 2 }}>ข้อมูลการดำเนินงานระดับเขตสุขภาพ</div>
                 </div>
               </div>
             )}
