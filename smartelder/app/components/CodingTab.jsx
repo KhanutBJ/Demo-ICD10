@@ -1,6 +1,8 @@
 'use client';
 import { useState, useRef } from 'react';
 import { useWelfare, matchIcd } from '../context/WelfareContext';
+import { suggestAgencies } from '../data/welfare-kb';
+import { getDepts } from '../data/dept-map';
 
 const GROQ_ASR_KEY = process.env.NEXT_PUBLIC_GROQ_ASR_KEY;
 const GROQ_LLM_KEY = process.env.NEXT_PUBLIC_GROQ_LLM_KEY;
@@ -15,8 +17,20 @@ const PATIENTS = [
 
 // Strip Qwen3 <think>...</think> tokens then extract JSON
 function parseIcdResponse(raw) {
-  const stripped = raw.replace(/<think>[\s\S]*?(?:<\/think>|$)/gi, '').trim();
-  const match = stripped.match(/\{[\s\S]*\}/);
+  // 1. Strip <think> blocks (greedy — handles unclosed tags from streaming cutoff)
+  let text = raw
+    .replace(/<think>[\s\S]*?<\/think>/gi, '')
+    .replace(/<think>[\s\S]*/gi, '')
+    .trim();
+
+  // 2. Strip markdown code fences ```json ... ``` or ``` ... ```
+  text = text.replace(/```(?:json)?\s*([\s\S]*?)```/gi, '$1').trim();
+
+  // 3. Try direct JSON parse first
+  try { return JSON.parse(text); } catch {}
+
+  // 4. Extract first {...} block
+  const match = text.match(/\{[\s\S]*\}/);
   if (!match) throw new Error('ไม่พบ JSON ในคำตอบ AI');
   return JSON.parse(match[0]);
 }
@@ -104,12 +118,12 @@ export default function CodingTab() {
           messages: [
             {
               role: 'system',
-              content: 'คุณคือผู้เชี่ยวชาญด้าน ICD-10 coding สำหรับระบบสาธารณสุขไทย เมื่อได้รับ clinical note ให้สกัด diagnosis แล้วแนะนำ ICD-10 code 3 อันดับแรกที่เหมาะสมที่สุด พร้อม confidence score (%) และเหตุผลสั้นๆ ตอบในรูปแบบ JSON เท่านั้น ห้ามมี markdown หรือ backtick: {"codes": [{"code": "", "description_th": "", "confidence": 0, "reason": ""}]}',
+              content: 'คุณคือผู้เชี่ยวชาญด้าน ICD-10 coding สำหรับระบบสาธารณสุขไทย เมื่อได้รับ clinical note ให้สกัด diagnosis แล้วแนะนำ ICD-10 code 3 อันดับแรกที่เหมาะสมที่สุด พร้อม confidence score (%) และเหตุผลสั้นๆ ตอบด้วย raw JSON object เท่านั้น ห้ามมี markdown, backtick, หรือข้อความอื่นนอกจาก JSON: {"codes": [{"code": "", "description_th": "", "confidence": 0, "reason": ""}]}',
             },
-            { role: 'user', content: `Clinical note: ${note}` },
+            { role: 'user', content: `Clinical note: ${note}\n/no_think` },
           ],
           temperature: 0.1,
-          max_tokens: 2048,
+          max_tokens: 1024,
         }),
       });
       const d = await res.json();
@@ -118,6 +132,7 @@ export default function CodingTab() {
       setCodes(parsed.codes);
       setStatus({ type: 'ok', msg: `✅ AI แนะนำ ${parsed.codes.length} รหัสสำเร็จ — คลิกเลือกรหัสที่ต้องการ` });
     } catch (e) {
+      console.error('[ICD parse error]', e.message);
       setStatus({ type: 'err', msg: `❌ วิเคราะห์ไม่สำเร็จ: ${e.message}` });
     } finally { setCoding(false); }
   };
@@ -142,8 +157,13 @@ export default function CodingTab() {
     setTimeout(() => setWelfareAnim(1), 700);
     setTimeout(() => setWelfareAnim(2), 1500);
     setTimeout(() => setWelfareAnim(3), 2300);
+    // RAG: derive relevant agencies from selected ICD codes
+    const allAgencies = [...new Set(
+      selected.flatMap(code => suggestAgencies(code, matchIcd(code)?.tier))
+    )];
+    const depts = getDepts(selected);
     // Dispatch to global context
-    dispatch({ type:'SAVE_ICD', payload:{ patientId:patient.id, patientName:patient.name, icdCodes:selected, addr:patient.addr, adl: adlScore !== '' ? Number(adlScore) : undefined } });
+    dispatch({ type:'SAVE_ICD', payload:{ patientId:patient.id, patientName:patient.name, icdCodes:selected, addr:patient.addr, adl: adlScore !== '' ? Number(adlScore) : undefined, agencies: allAgencies, departments: depts } });
   };
 
   const adlNum = adlScore !== '' ? Number(adlScore) : null;
@@ -378,6 +398,27 @@ export default function CodingTab() {
                   })()}
                 </div>
               ))}
+
+              {/* Department routing */}
+              {selected.length > 0 && (() => {
+                const depts = getDepts(selected);
+                if (!depts.length) return null;
+                return (
+                  <div className="anim-fade-up" style={{ padding:'14px 16px', borderRadius:16, background:'linear-gradient(135deg,#F0FDF9,#EFF6FF)', border:'1.5px solid #A7D9C6', marginTop:4 }}>
+                    <p style={{ fontSize:11, fontWeight:700, color:'#0F6E56', textTransform:'uppercase', letterSpacing:'0.6px', marginBottom:10 }}>
+                      🏥 แผนกที่แนะนำให้ส่งต่อ
+                    </p>
+                    <div style={{ display:'flex', flexWrap:'wrap', gap:8 }}>
+                      {depts.map((d, i) => (
+                        <div key={i} style={{ display:'flex', alignItems:'center', gap:6, padding:'7px 12px', borderRadius:10, background:'white', border:`1.5px solid ${d.color}40`, boxShadow:`0 2px 8px ${d.color}18` }}>
+                          <span style={{ fontSize:16 }}>{d.icon}</span>
+                          <span style={{ fontSize:12, fontWeight:700, color:d.color }}>{d.name}</span>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                );
+              })()}
 
               {/* Save button */}
               <button onClick={saveHIS}

@@ -63,6 +63,37 @@ export default function DashboardTab() {
     tier, count, ...(TIER_META[tier] || { color:'#9BBCAF', desc:'—' }),
   }));
 
+  const AGENCY_META = {
+    'สปสช.':               { color:'#1D4ED8', icon:'🏥' },
+    'กปท.':                { color:'#0F6E56', icon:'🌿' },
+    'LTC Fund':            { color:'#7C3AED', icon:'👤' },
+    'อปท.':                { color:'#D97706', icon:'🏘️' },
+    'กองทุนฟื้นฟูจังหวัด': { color:'#DC2626', icon:'🔧' },
+    'รพ.สต.':              { color:'#0891B2', icon:'💊' },
+    'อบต./เทศบาล':         { color:'#059669', icon:'🏛️' },
+    'กสม.':                { color:'#9333EA', icon:'⚖️' },
+  };
+  const agencyMap = {};
+  patients.forEach(p => {
+    (p.suggestedAgencies || []).forEach(ag => {
+      agencyMap[ag] = (agencyMap[ag] || 0) + 1;
+    });
+  });
+  const agencyStats = Object.entries(agencyMap)
+    .sort((a, b) => b[1] - a[1])
+    .map(([name, count]) => ({ name, count, ...(AGENCY_META[name] || { color:'#9BBCAF', icon:'🏢' }) }));
+
+  const deptMap = {};
+  patients.forEach(p => {
+    (p.departments || []).forEach(d => {
+      if (!deptMap[d.name]) deptMap[d.name] = { count: 0, icon: d.icon, color: d.color };
+      deptMap[d.name].count += 1;
+    });
+  });
+  const deptStats = Object.entries(deptMap)
+    .sort((a, b) => b[1].count - a[1].count)
+    .map(([name, meta]) => ({ name, ...meta }));
+
   return (
     <div>
       {/* Impact metrics */}
@@ -235,6 +266,57 @@ export default function DashboardTab() {
             </div>
           </div>
         </div>
+
+        {/* Agency involvement — RAG-derived */}
+        {agencyStats.length > 0 && (
+          <div className="glass-card" style={{ padding:'20px', marginTop:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+              <div style={{ width:30, height:30, borderRadius:9, background:'#1D4ED815', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>🤖</div>
+              <div>
+                <span style={{ fontWeight:700, fontSize:13, color:'#1A2E28' }}>หน่วยงานที่เกี่ยวข้อง (RAG-derived)</span>
+                <p style={{ fontSize:10, color:'#9BBCAF', marginTop:1 }}>จำนวนผู้ป่วยที่ระบบ PWL แนะนำให้ประสานงานกับแต่ละหน่วยงาน</p>
+              </div>
+              <span style={{ marginLeft:'auto', padding:'3px 10px', borderRadius:8, background:'#EFF6FF', color:'#1D4ED8', fontSize:10, fontWeight:700, flexShrink:0 }}>RAG</span>
+            </div>
+            <div style={{ display:'flex', flexWrap:'wrap', gap:10 }}>
+              {agencyStats.map((ag, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:8, padding:'10px 14px', borderRadius:12, background:`${ag.color}0D`, border:`1.5px solid ${ag.color}30`, minWidth:140 }}>
+                  <span style={{ fontSize:18 }}>{ag.icon}</span>
+                  <div>
+                    <p style={{ fontSize:12, fontWeight:800, color:ag.color }}>{ag.name}</p>
+                    <p style={{ fontSize:11, color:'#9BBCAF' }}>{ag.count} ผู้ป่วย</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+        {/* Department routing distribution */}
+        {deptStats.length > 0 && (
+          <div className="glass-card" style={{ padding:'20px', marginTop:16 }}>
+            <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:14 }}>
+              <div style={{ width:30, height:30, borderRadius:9, background:'#0F6E5615', display:'flex', alignItems:'center', justifyContent:'center', fontSize:15 }}>🏥</div>
+              <div>
+                <span style={{ fontWeight:700, fontSize:13, color:'#1A2E28' }}>การกระจายตัวตามแผนก (Department Routing)</span>
+                <p style={{ fontSize:10, color:'#9BBCAF', marginTop:1 }}>จำนวนผู้ป่วยที่ระบบแนะนำให้ส่งต่อแต่ละแผนก</p>
+              </div>
+            </div>
+            <div style={{ display:'flex', flexDirection:'column', gap:8 }}>
+              {deptStats.map((d, i) => (
+                <div key={i} style={{ display:'flex', alignItems:'center', gap:10 }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:7, width:220, flexShrink:0 }}>
+                    <span style={{ fontSize:16 }}>{d.icon}</span>
+                    <span style={{ fontSize:12, fontWeight:700, color:d.color }}>{d.name}</span>
+                  </div>
+                  <div style={{ flex:1, height:10, borderRadius:999, background:`${d.color}18`, overflow:'hidden' }}>
+                    <div style={{ height:'100%', width:`${totalPatients ? (d.count/totalPatients)*100 : 0}%`, background:d.color, borderRadius:999, transition:'width 0.8s' }} />
+                  </div>
+                  <span style={{ fontSize:12, fontWeight:800, color:d.color, width:40, textAlign:'right', flexShrink:0 }}>{d.count} ราย</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
       </div>
 
       {/* Insight grid */}

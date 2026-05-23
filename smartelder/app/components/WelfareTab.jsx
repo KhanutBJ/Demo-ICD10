@@ -119,6 +119,18 @@ export default function WelfareTab() {
           <div style={{ marginBottom:12, padding:'8px 12px', borderRadius:10, background:'#F0FDF9', fontSize:12, color:'#0F6E56', fontWeight:600 }}>
             ICD-10: <strong>{p.icd}</strong> — Tier: <strong>{matchIcd(p.icd)?.tier || '—'}</strong>
           </div>
+          {(p.suggestedAgencies?.length > 0) && (
+            <div style={{ marginBottom:14 }}>
+              <p style={{ fontSize:11, fontWeight:700, color:'#9BBCAF', textTransform:'uppercase', letterSpacing:'0.6px', marginBottom:7 }}>
+                🤖 RAG — หน่วยงานที่เกี่ยวข้อง
+              </p>
+              <div style={{ display:'flex', flexWrap:'wrap', gap:6 }}>
+                {p.suggestedAgencies.map((ag, i) => (
+                  <span key={i} style={{ padding:'4px 10px', borderRadius:8, fontSize:12, fontWeight:700, background:'#EFF6FF', color:'#1D4ED8', border:'1px solid #BFDBFE' }}>{ag}</span>
+                ))}
+              </div>
+            </div>
+          )}
           <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
             {benefits.map((b, i) => (
               <div key={i} className="benefit-chip">

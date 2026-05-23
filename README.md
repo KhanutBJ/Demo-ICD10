@@ -1,102 +1,205 @@
-# 🏥 Synape x Right — PWL POC Demo
+# Synape x Right — PWL POC Demo
 
-> **Proactive Welfare Link (PWL)**: Transforming passive ICD-10 codes into an active social welfare ecosystem. "สิทธิ์ต้องวิ่งไปหาผู้ป่วย ไม่ใช่รอให้ผู้ป่วยมาถาม"
-
----
-
-## ✨ Features & Architecture
-
-**Core Workflow (Live Shared State):**
-`🏥 CodingTab → (React Context) → 🛡️ WelfareTab, 📱 VHVTab, 📊 Dashboard`
-
-| Tab | Feature | Description |
-|-----|---------|-------------|
-| 🏥 **บันทึก ICD-10** | **AI Coding** | Voice/Text entry → AI suggests ICD-10 codes → Save triggers PWL |
-| 🔗 **PWL Pipeline** | **Data Flow** | Animated 4-stage visualization: HIS → Tokenizer → DGA → Delivery |
-| 🛡️ **สิทธิ์ผู้ป่วย** | **State Machine** | Live welfare state per patient, TTL countdowns, and ADL tracking |
-| 📱 **แดชบอร์ด อสม.** | **Last-Mile** | Real-time task alerts for VHV (อสม.), ADL update dispatching |
-| 📊 **ภาพรวมระบบ** | **Analytics** | Live impact metrics based on unlocked welfare records |
-| 💬 **สิทธิ์ AI** | **Rights Bot** | AI chatbot for Universal Healthcare (บัตรทอง 30 บาท) FAQs |
+> **Proactive Welfare Link (PWL)**: ICD-10 × Barthel ADL → Welfare Tier → สิทธิ์ถึงเตียงผู้ป่วยอัตโนมัติ
+> "สิทธิ์ต้องวิ่งไปหาผู้ป่วย ไม่ใช่รอให้ผู้ป่วยมาถาม"
 
 ---
 
-## 🛠 Tech Stack
+## System Architecture
 
-- **Framework**: [Next.js 16](https://nextjs.org/) (App Router)
-- **Language**: TypeScript + JSX
-- **Styling**: Tailwind CSS v4
-- **Charts**: Recharts
-- **State Management**: React Context API + `useReducer`
-- **AI / LLM**: [Groq](https://groq.com/) — `qwen/qwen3-32b` for ICD coding & rights Q&A
-- **Speech-to-Text**: Groq Whisper `whisper-large-v3`
+```
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  ZONE 1 — HOSPITAL PERIMETER                                                   ║
+║                                                                                ║
+║   ┌─────────────────┐  CDC trigger   ┌──────────────────────────────────────┐ ║
+║   │  HosXP (MySQL)  │───────────────▶│  PWL Edge Module                     │ ║
+║   │  ICD-10 + ADL   │                │                                      │ ║
+║   └─────────────────┘                │   ┌──────────────────────────────┐   │ ║
+║                                      │   │       Rule Engine            │   │ ║
+║                                      │   │       ICD × ADL → Tier       │   │ ║
+║                                      │   └───────────────┬──────────────┘   │ ║
+║                                      │                   ▼                  │ ║
+║                                      │   ┌───────────────────────┐  ┌─────┐ │ ║
+║                                      │   │   Tokenizer (PDPA)    │─▶│Local│ │ ║
+║                                      │   │   SHA-256 + KMS       │  │Queue│ │ ║
+║                                      │   │   Strip PII/ICD       │  │SQLite│ │ ║
+║                                      │   └───────────────────────┘  └─────┘ │ ║
+║                                      └──────────────────────────────────────┘ ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+                                              │
+                                    mTLS · X.509 per hospital
+                                              │
+                                              ▼
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  ZONE 2 — GOVERNMENT CLOUD (DGA)                                               ║
+║                                                                                ║
+║                  ┌────────────────────────────────────────┐                   ║
+║                  │           API Gateway (Kong)            │                   ║
+║                  │   mTLS termination · rate-limit · HMAC  │                   ║
+║                  └───────────────────┬────────────────────┘                   ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║                  ┌────────────────────────────────────────┐                   ║
+║                  │           Token Resolver                │                   ║
+║                  │      Secure enclave · Token → CID       │                   ║
+║                  └───────────────────┬────────────────────┘                   ║
+║                                      │                                        ║
+║                                      ▼                                        ║
+║                  ┌────────────────────────────────────────┐                   ║
+║                  │        State Machine Service            │                   ║
+║                  │  Pending → Eligible → Active →          │                   ║
+║                  │  Suspended → Renewed → Terminated       │                   ║
+║                  └──────┬─────────────┬────────────┬───────┘                   ║
+║                         │             │            │                          ║
+║                         ▼             ▼            ▼                          ║
+║            ┌────────────────┐ ┌──────────────┐ ┌─────────────────┐           ║
+║            │   Ledger DB    │ │ Routing Engine│ │  Cross-Agency   │           ║
+║            │  Append-only   │ │   Delivery    │ │  NHSO · MoI     │           ║
+║            │    · audit     │ │   routing     │ │  Treasury       │           ║
+║            └────────────────┘ └──────────────┘ │  LTC integration│           ║
+║                                                 └─────────────────┘           ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+              │                       │                      │
+              ▼                       ▼                      ▼
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  ZONE 3 — LOCAL DELIVERY                                                       ║
+║                                                                                ║
+║  ┌──────────────────────┐  ┌──────────────────────┐  ┌──────────────────────┐ ║
+║  │  Local Gov.          │  │    Care Manager       │  │  Rights Dashboard    │ ║
+║  │  Dashboard           │  │                       │  │                      │ ║
+║  │  Work orders         │  │  Tablet UI            │  │  Aggregate view only │ ║
+║  │  audit trail         │  │  ADL + care plan      │  │  No PII              │ ║
+║  │  No ICD codes        │  │  Pre-filled forms     │  │                      │ ║
+║  └──────────┬───────────┘  └──────────────────────┘  └──────────────────────┘ ║
+║             │ Exception only                                                   ║
+║             ▼                                                                  ║
+║  ┌──────────────────────┐                                                      ║
+║  │     VHV Alert        │                                                      ║
+║  │  Last-mile re-route  │                                                      ║
+║  └──────────────────────┘                                                      ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
 
----
 
-## 🚀 Getting Started
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  PWL DEMO APP — Tab-to-Zone Mapping                                            ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
 
-### 1. Install dependencies
+  🏥 CodingTab          →  Zone 1   Voice→Whisper→Qwen3→ICD+ADL→SAVE_ICD dispatch
+  🔗 PipelineTab        →  Z1→Z2→Z3 Animated 4-stage demo (happy path + exception)
+  🛡️ WelfareTab         →  Zone 2   6-state machine · ADL gauge · TTL · RAG chips
+  🏘️ VHVTab             →  Zone 3   Work orders from exceptions · ADL log → sync
+  📊 DashboardTab       →  Zone 3   กสม. Rights · Tier/State stats · RAG agencies
+  💬 RightsTab          →  Zone 3   RAG chatbot (KB 11 entries) + Qwen3 + sources
 
-```bash
-cd smartelder
-npm install
+                              ┌──────────────────────┐
+                              │  WelfareContext       │   ← shared across all tabs
+                              │  React useReducer     │
+                              │  patients · alerts    │
+                              │  suggestedAgencies    │
+                              └──────────────────────┘
+
+
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  🤖  RAG Layer  (welfare-kb.js — 11 entries)                                   ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+  ICD + Tier ──▶ retrieveRelevant() ──▶ Top-K docs
+                                              │
+              ┌───────────────────────────────┤
+              │                               │
+              ▼                               ▼
+     suggestAgencies()                 RightsTab chatbot
+     → [สปสช., กปท.,                  inject context → Qwen3-32b
+        LTC Fund, อปท.,               → answer + 📚 source badges
+        กองทุนฟื้นฟูจังหวัด, …]
+     → store per patient (WelfareContext)
+     → chips in WelfareTab
+     → aggregate card in DashboardTab
+
+
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  📋  ICD-10 → Welfare Tier → Benefits                                          ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+  ICD       Tier                   ADL    TTL    Benefits
+  ────────  ─────────────────────  ─────  ─────  ────────────────────────────────
+  I63       STROKE_DEPENDENT       ≤ 6    180d   ผ้าอ้อม · Caregiver · อุปกรณ์
+  I69       STROKE_SEQUELAE        ≤ 8    180d   ผ้าอ้อม · Caregiver · Palliative
+  I50       CARDIAC_DEPENDENT      ≤ 8    180d   ผ้าอ้อม · Caregiver · Palliative
+  F01/F03   DEMENTIA_LONGTERM      ≤ 8    ∞ lock Care Plan (LTC) · อุปกรณ์ · ผ้าอ้อม
+  S72       FRACTURE_TEMPORARY     ≤ 8    90d    อุปกรณ์ชั่วคราว · กายภาพบำบัด
+  M17/E11   CHRONIC                —      —      ตรวจสุขภาพประจำปี · ยา
+
+
+╔══════════════════════════════════════════════════════════════════════════════════╗
+║  🔐  Privacy Zones                                                              ║
+╚══════════════════════════════════════════════════════════════════════════════════╝
+
+  Zone 1 — Hospital Perimeter    Zone 2 — DGA Cloud        Zone 3 — อปท./กสม.
+  ──────────────────────────     ──────────────────         ──────────────────────
+  ICD-10 · PII · ADL             Tier Token only            Work Order only
+  ► Never leaves perimeter        No diagnosis name          No ICD / no name
+  SHA-256 + KMS at edge           Append-only ledger         ADL result only
 ```
 
-### 2. Set up environment variables
+---
 
-Create a `.env.local` file inside `smartelder/`:
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Framework | Next.js 16 (App Router, Turbopack) |
+| Language | TypeScript + JSX |
+| State | React Context + `useReducer` |
+| AI / LLM | Groq `qwen/qwen3-32b` |
+| Speech-to-Text | Groq Whisper `whisper-large-v3` |
+| RAG | Client-side keyword scoring (welfare-kb.js · 11 entries) |
+| Charts | Recharts |
+| Deploy | Vercel |
+
+---
+
+## Getting Started
+
+```bash
+cd smartelder && npm install
+```
+
+`smartelder/.env.local`:
 
 ```env
-NEXT_PUBLIC_GROQ_ASR_KEY=your_groq_asr_key_here
-NEXT_PUBLIC_GROQ_LLM_KEY=your_groq_llm_key_here
+NEXT_PUBLIC_GROQ_ASR_KEY=your_groq_asr_key
+NEXT_PUBLIC_GROQ_LLM_KEY=your_groq_llm_key
 ```
-
-Get your API keys at [console.groq.com](https://console.groq.com).
-
-### 3. Run locally
 
 ```bash
-npm run dev
+npm run dev   # http://localhost:3000
 ```
 
-Open [http://localhost:3000](http://localhost:3000) in your browser.
-
 ---
 
-## ☁️ Deploying to Vercel
-
-1. Import this repo into [Vercel](https://vercel.com)
-2. Set **Root Directory** to `smartelder`
-3. Add environment variables in **Project Settings → Environment Variables**:
-   - `NEXT_PUBLIC_GROQ_ASR_KEY`
-   - `NEXT_PUBLIC_GROQ_LLM_KEY`
-4. Deploy 🚀
-
----
-
-## 📁 Project Structure
+## Project Structure
 
 ```
 smartelder/
 ├── app/
 │   ├── components/
-│   │   ├── CodingTab.jsx     # ICD-10 AI coding (voice + LLM)
-│   │   ├── PipelineTab.jsx   # Animated data flow visualization
-│   │   ├── WelfareTab.jsx    # Live patient state machine
-│   │   ├── VHVTab.jsx        # Village Health Volunteer dashboard
-│   │   ├── DashboardTab.jsx  # Live impact metrics
-│   │   └── RightsTab.jsx     # Rights AI chatbot
+│   │   ├── CodingTab.jsx      # Voice+LLM → ICD-10+ADL → SAVE_ICD
+│   │   ├── PipelineTab.jsx    # Animated 4-stage PWL pipeline demo
+│   │   ├── WelfareTab.jsx     # 6-state machine · RAG agency chips
+│   │   ├── VHVTab.jsx         # อปท. work orders · ADL logging
+│   │   ├── DashboardTab.jsx   # กสม. analytics · RAG agency panel
+│   │   └── RightsTab.jsx      # RAG chatbot (welfare-kb + Qwen3)
 │   ├── context/
-│   │   └── WelfareContext.jsx # Global shared state for PWL flow
+│   │   └── WelfareContext.jsx # patients · alerts · suggestedAgencies
+│   ├── data/
+│   │   └── welfare-kb.js      # 11-entry KB · retrieveRelevant() · suggestAgencies()
 │   ├── globals.css
 │   ├── layout.tsx
-│   └── page.tsx              # Main app shell + tab routing
-├── public/
-├── package.json
+│   └── page.tsx
 └── vercel.json
 ```
 
 ---
 
-## 📞 Healthcare Hotline
-
-**สปสช.** (NHSO) — โทร **1330** · 24 ชั่วโมง · ฟรีทั่วประเทศ
+**สปสช.** โทร **1330** · 24 ชั่วโมง · ฟรีทั่วประเทศ

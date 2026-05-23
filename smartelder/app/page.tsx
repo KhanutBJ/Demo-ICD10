@@ -9,6 +9,7 @@ const WelfareTab   = dynamic(() => import('./components/WelfareTab'),   { ssr: f
 const VHVTab       = dynamic(() => import('./components/VHVTab'),       { ssr: false });
 const RightsTab    = dynamic(() => import('./components/RightsTab'),    { ssr: false });
 const DashboardTab = dynamic(() => import('./components/DashboardTab'), { ssr: false });
+const IntroPage    = dynamic(() => import('./components/IntroPage'),    { ssr: false });
 
 const TABS = [
   { id: 'coding',    emoji: '🏥', label: 'บันทึก ICD-10',  sub: 'AI Coding' },
@@ -24,10 +25,13 @@ export default function HomePage() {
 }
 
 function HomeInner() {
+  const [intro, setIntro] = useState(true);
   const [active, setActive] = useState('coding');
   const now = new Date().toLocaleDateString('th-TH', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
+
+  if (intro) return <IntroPage onEnter={() => setIntro(false)} />;
 
   return (
     <div style={{ minHeight: '100vh', background: '#F0F7F4' }}>
