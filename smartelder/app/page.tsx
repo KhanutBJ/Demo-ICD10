@@ -14,23 +14,51 @@ const DashboardTab = dynamic(() => import('./components/DashboardTab'), { ssr: f
 const IntroPage    = dynamic(() => import('./components/IntroPage'),    { ssr: false });
 
 const TABS = [
-  { id: 'coding',    emoji: '🏥', label: 'บันทึก ICD-10',  sub: 'AI Coding' },
-  { id: 'pipeline',  emoji: '🔗', label: 'PWL Pipeline',   sub: 'Data Flow' },
-  { id: 'welfare',   emoji: '🛡️', label: 'สิทธิ์ผู้ป่วย',  sub: 'State Machine' },
-  { id: 'vhv',       emoji: '🏘️', label: 'อปท. Last-Mile',  sub: 'Work Orders' },
-  { id: 'lastmile',  emoji: '📦', label: 'Care Flow',        sub: 'Agent + Tracking' },
-  { id: 'referral',  emoji: '🔀', label: 'Referral Hub',     sub: 'Auto-Referral' },
-  { id: 'dashboard', emoji: '📊', label: 'ภาพรวมระบบ',     sub: 'Analytics' },
-  { id: 'rights',    emoji: '💬', label: 'สิทธิ์ AI',        sub: 'Rights Bot' },
+  { id: 'coding',      emoji: '🏥', label: 'ICD Coding',     sub: 'AI + Dept Routing' },
+  { id: 'welfare_grp', emoji: '🛡️', label: 'สิทธิ์',         sub: 'Welfare + Pipeline' },
+  { id: 'coord_grp',   emoji: '🔀', label: 'Coordination',   sub: 'Referral + Care' },
+  { id: 'dashboard',   emoji: '📊', label: 'ภาพรวมระบบ',    sub: 'Analytics' },
+  { id: 'rights',      emoji: '💬', label: 'สิทธิ์ AI',       sub: 'Rights Bot' },
+];
+
+const WELFARE_SUBS  = [
+  { id:'welfare',  label:'🛡️ สิทธิ์ผู้ป่วย' },
+  { id:'pipeline', label:'🔗 PWL Pipeline' },
+];
+const COORD_SUBS = [
+  { id:'referral', label:'🔀 Referral Hub' },
+  { id:'lastmile', label:'📦 Care Flow' },
+  { id:'vhv',      label:'🏘️ Work Orders' },
 ];
 
 export default function HomePage() {
   return <WelfareProvider><HomeInner /></WelfareProvider>;
 }
 
+function SubNav({ options, active, onChange }: { options:{id:string,label:string}[], active:string, onChange:(id:string)=>void }) {
+  return (
+    <div style={{ display:'flex', gap:6, marginBottom:20, flexWrap:'wrap' }}>
+      {options.map(o => (
+        <button key={o.id} onClick={() => onChange(o.id)}
+          style={{
+            padding:'7px 16px', borderRadius:20, fontSize:12, fontWeight:700, border:'none', cursor:'pointer',
+            background: active===o.id ? 'linear-gradient(135deg,#0F6E56,#17A97E)' : 'rgba(255,255,255,0.85)',
+            color: active===o.id ? 'white' : '#4B7A6A',
+            boxShadow: active===o.id ? '0 3px 10px rgba(15,110,86,0.25)' : '0 1px 4px rgba(0,0,0,0.08)',
+            transition:'all 0.2s',
+          }}>
+          {o.label}
+        </button>
+      ))}
+    </div>
+  );
+}
+
 function HomeInner() {
   const [intro, setIntro] = useState(true);
   const [active, setActive] = useState('coding');
+  const [welfSub,  setWelfSub]  = useState('welfare');
+  const [coordSub, setCoordSub] = useState('referral');
   const now = new Date().toLocaleDateString('th-TH', {
     weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
   });
@@ -121,12 +149,21 @@ function HomeInner() {
 
         {/* Content */}
         <div className="anim-fade-up">
-          {active === 'coding'    && <CodingTab />}
-          {active === 'pipeline'  && <PipelineTab />}
-          {active === 'welfare'   && <WelfareTab />}
-          {active === 'vhv'       && <VHVTab />}
-          {active === 'lastmile'  && <LastMileTab />}
-          {active === 'referral'  && <ReferralHub />}
+          {active === 'coding' && <CodingTab />}
+
+          {active === 'welfare_grp' && <>
+            <SubNav options={WELFARE_SUBS} active={welfSub} onChange={setWelfSub} />
+            {welfSub === 'welfare'  && <WelfareTab />}
+            {welfSub === 'pipeline' && <PipelineTab />}
+          </>}
+
+          {active === 'coord_grp' && <>
+            <SubNav options={COORD_SUBS} active={coordSub} onChange={setCoordSub} />
+            {coordSub === 'referral' && <ReferralHub />}
+            {coordSub === 'lastmile' && <LastMileTab />}
+            {coordSub === 'vhv'      && <VHVTab />}
+          </>}
+
           {active === 'dashboard' && <DashboardTab />}
           {active === 'rights'    && <RightsTab />}
         </div>
