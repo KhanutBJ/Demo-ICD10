@@ -12,7 +12,7 @@ const SLA_DATA = [
 const GAP_STATUS = [
   { gap: 'B1: ระยะเวลาอนุมัติสิทธิ์ (IMC Gap)',     desc: 'ลดเวลาอนุมัติผ้าอ้อม 3 ชิ้น/วัน จาก 180 วัน เป็น ≤7 วัน', status: 'done' },
   { gap: 'B2: ปัญหาขาดแคลน Care Manager', desc: 'ใช้ AI Draft Care Plan ส่งต่อให้ อสม. หรือญาติประเมิน ADL ทาง Line', status: 'done' },
-  { gap: 'B3: คณะกรรมการอนุมัติล่าช้า',     desc: 'ระบบ Alert กองทุนตำบล (ดูแลระยะยาว) อัตโนมัติเมื่อเอกสารพร้อม',           status: 'pending' },
+  { gap: 'B3: คณะกรรมการอนุมัติล่าช้า',     desc: 'ระบบ Alert กองทุนตำบล (LTC) อัตโนมัติเมื่อเอกสารพร้อม',           status: 'pending' },
   { gap: 'B4: เบิกจ่ายเงินกองทุนช้า',      desc: 'ระบบ Auto-Disbursement ผ่าน PromptPay/Krungthai Corporate',                  status: 'pending' },
 ];
 
@@ -77,7 +77,7 @@ export default function InsightsTab() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 16 }}>
             <div>
               <h2 style={{ fontSize: 15, fontWeight: 700, color: 'var(--ink)' }}>สถานะการแก้ไขปัญหา (Gap Registry)</h2>
-              <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>ความคืบหน้าตามแผนยุทธศาสตร์ ดูแลระยะยาว</p>
+              <p style={{ fontSize: 12, color: 'var(--ink-3)', marginTop: 2 }}>ความคืบหน้าตามแผนยุทธศาสตร์ LTC</p>
             </div>
           </div>
 
