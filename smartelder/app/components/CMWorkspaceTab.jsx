@@ -1,5 +1,6 @@
 'use client';
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 const TOOLS = [
   { id: 'adl', label: 'ประเมิน ADL', desc: 'Barthel Index Scoring' },
@@ -15,31 +16,110 @@ const EXAMPLES = {
   policy: "ระเบียบการเบิกผ้าอ้อมผู้ใหญ่ปีล่าสุด กำหนดให้เบิกได้กี่ชิ้นต่อวัน?",
 };
 
-const MOCK_RESPONSES = {
-  adl: "จากการประเมินข้อมูลผู้ป่วย:\n- การเคลื่อนไหว: ลุกนั่งเองไม่ได้ เดินต้องมีคนพยุง (คะแนนต่ำ)\n- การขับถ่าย: ควบคุมปัสสาวะและอุจจาระไม่ได้เลย (0 คะแนน)\n\nสรุป: ผู้ป่วยเข้าเกณฑ์รับสิทธิ์ผ้าอ้อมผู้ใหญ่ สปสช. เนื่องจากมีคะแนน ADL ≤ 6 (ติดเตียง) และมีปัญหาการกลั้นขับถ่ายชัดเจน",
-  careplan: "ร่าง Care Plan (ผ้าอ้อมผู้ใหญ่ 3 ชิ้น/วัน)\n\n1. ปัญหา: ผู้ป่วยติดเตียงรุนแรง (ADL 3/20) กลั้นขับถ่ายไม่ได้ มีความเสี่ยงเกิดแผลกดทับ\n2. เป้าหมาย: รักษาความสะอาด ป้องกันการติดเชื้อทางเดินปัสสาวะและแผลกดทับ\n3. ความต้องการ: ผ้าอ้อมผู้ใหญ่ 3 ชิ้น/วัน (90 ชิ้น/เดือน)\n4. การดูแล: ญาติ (ลูกสาว) เปลี่ยนผ้าอ้อมทุก 8 ชั่วโมง หรือเมื่อเปียกชื้น พลิกตัวทุก 2 ชั่วโมง\n5. การติดตามผล: Care Manager (น.ส.วาสนา) ลงพื้นที่เยี่ยมบ้านเดือนละ 1 ครั้ง",
-  rights: "ตรวจสอบสิทธิ์เรียบร้อย:\n\nผู้ป่วย HN-2024-001 อายุ 72 ปี สิทธิ์บัตรทอง\nมีคุณสมบัติครบถ้วนตามเกณฑ์:\n✅ ADL Score = 4/20 (ติดเตียง เกณฑ์ ≤ 6)\n✅ มีภาวะกลั้นปัสสาวะและอุจจาระไม่ได้\n\nสรุป: ผู้ป่วย มีสิทธิ์ได้รับผ้าอ้อมผู้ใหญ่ 3 ชิ้น/วัน จากกองทุน LTC ทันที",
-  policy: "ตามประกาศคณะกรรมการหลักประกันสุขภาพแห่งชาติ:\n\nผู้ที่มีภาวะพึ่งพิง (ADL ≤ 6) หรือ ผู้ที่มีปัญหาการกลั้นขับถ่ายปัสสาวะ/อุจจาระ (ไม่จำกัดคะแนน ADL) มีสิทธิ์ได้รับ:\n- ผ้าอ้อมผู้ใหญ่ หรือแผ่นรองซับ\n- จำนวนไม่เกิน 3 ชิ้น/วัน\n- อนุมัติผ่านกองทุนดูแลผู้สูงอายุที่มีภาวะพึ่งพิง (LTC) หรือ กองทุน กปท. ระดับพื้นที่"
-};
-
 export default function CMWorkspaceTab() {
-  const [tool, setTool]      = useState('careplan');
-  const [input, setInput]    = useState('');
-  const [loading, setLoad]   = useState(false);
-  const [result, setResult]  = useState('');
+  const [patients, setPatients] = useState([]);
+  const [selectedHn, setSelectedHn] = useState('');
+  const [tasks, setTasks] = useState([]);
+  const [tool, setTool] = useState('careplan');
+  const [input, setInput] = useState('');
+  const [loading, setLoad] = useState(false);
+  const [result, setResult] = useState('');
+
+  const fetchPatients = async () => {
+    try {
+      const res = await fetch(`${API_BASE}/api/patients`);
+      if (res.ok) {
+        const data = await res.json();
+        setPatients(data);
+        if (data.length > 0 && !selectedHn) {
+          setSelectedHn(data[0].HN);
+        }
+      }
+    } catch (e) {
+      console.error("Failed to fetch patients:", e);
+    }
+  };
+
+  const fetchTasks = async (hn) => {
+    if (!hn) return;
+    try {
+      const res = await fetch(`${API_BASE}/api/tasks/${hn}`);
+      if (res.ok) {
+        const data = await res.json();
+        setTasks(data);
+      }
+    } catch (e) {
+      console.error("Failed to fetch tasks:", e);
+    }
+  };
+
+  useEffect(() => {
+    fetchPatients();
+  }, []);
+
+  useEffect(() => {
+    if (selectedHn) {
+      fetchTasks(selectedHn);
+    }
+  }, [selectedHn]);
+
+  const handleToggleTask = async (taskName, checked) => {
+    try {
+      const res = await fetch(`${API_BASE}/api/tasks/toggle`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ hn: selectedHn, task_name: taskName, checked })
+      });
+      if (res.ok) {
+        fetchTasks(selectedHn);
+        fetchPatients();
+      }
+    } catch (e) {
+      console.error("Failed to toggle task:", e);
+    }
+  };
 
   const run = async () => {
     if (!input.trim()) return;
     setLoad(true); setResult('');
-    
-    // Always use mock for demo
-    setTimeout(() => {
-      setResult(MOCK_RESPONSES[tool] || 'ดำเนินการสำเร็จ (Mock Mode)');
+
+    try {
+      const res = await fetch(`${API_BASE}/api/ai/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ tool, input }),
+      });
+      if (!res.ok) throw new Error('API Request Failed');
+      const d = await res.json();
+      setResult(d.result);
+    } catch (e) {
+      console.error(e);
+      setResult('เกิดข้อผิดพลาดในการประมวลผลผ่าน AI Agent ในหลังบ้าน');
+    } finally {
       setLoad(false);
-    }, 1500);
+    }
   };
 
   const loadExample = () => setInput(EXAMPLES[tool] || '');
+
+  const activePatient = patients.find(p => p.HN === selectedHn) || {
+    HN: 'HN-001',
+    Name: 'คุณตาหวัง รักดี',
+    Age: '78',
+    Gender: 'ชาย',
+    Symptom: 'Stroke อัมพาตครึ่งซีกซ้าย',
+    ADL_Score: '3',
+    Eligibility: 'Eligible',
+    Status: 'assigned'
+  };
+
+  const completedTasks = tasks.filter(t => t.checked).length;
+  const totalTasks = tasks.length || 4;
+
+  function intVal(val) {
+    const parsed = parseInt(val);
+    return isNaN(parsed) ? 20 : parsed;
+  }
 
   return (
     <div className="anim-fade-up">
@@ -52,43 +132,71 @@ export default function CMWorkspaceTab() {
       </div>
 
       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 24 }}>
-        
-         {/* Left Column: Patient Case Details */}
         <div style={{ display: 'flex', flexDirection: 'column', gap: 24 }}>
-           {/* Unlocked Rights */}
            <div className="card" style={{ background: 'white', overflow: 'hidden' }}>
              <div style={{ background: '#00B87C', color: 'white', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                <div>
-                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>Patient: HN-2024-001</h2>
-                 <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>ICD-10: I63.9 — Tier: STROKE_DEPENDENT</div>
+                 <h2 style={{ fontSize: 16, fontWeight: 700 }}>
+                   เลือกคนไข้:{' '}
+                   <select 
+                     value={selectedHn} 
+                     onChange={e => setSelectedHn(e.target.value)} 
+                     style={{ 
+                       background: 'rgba(255,255,255,0.2)', 
+                       border: 'none', 
+                       borderRadius: 4, 
+                       color: 'white', 
+                       padding: '4px 8px', 
+                       fontWeight: 700, 
+                       cursor: 'pointer',
+                       outline: 'none'
+                     }}
+                   >
+                     {patients.map(p => (
+                       <option key={p.HN} value={p.HN} style={{ color: '#111827' }}>
+                         {p.HN} - {p.Name}
+                       </option>
+                     ))}
+                   </select>
+                 </h2>
+                 <div style={{ fontSize: 13, opacity: 0.9, marginTop: 2 }}>
+                   อาการ: {activePatient.Symptom}
+                 </div>
                </div>
-               <span style={{ background: 'rgba(0,0,0,0.2)', padding: '4px 10px', fontSize: 12, fontWeight: 700, borderRadius: 4 }}>Active Case</span>
+               <span style={{ background: 'rgba(0,0,0,0.2)', padding: '4px 10px', fontSize: 12, fontWeight: 700, borderRadius: 4 }}>
+                 {activePatient.Status?.toUpperCase() || 'NEW'}
+               </span>
              </div>
              <div style={{ padding: 20 }}>
                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-               {[
-                 { icon: '<path d="M4 8v3c0 4.5 3.5 9 8 9s8-4.5 8-9V8" /><path d="M2.5 8h19" /><path d="M7 13a4 4 0 0 0 10 0" />', title: 'ผ้าอ้อมฟรี', desc: '3 ชิ้น/วัน (กปท.)', status: 'ยื่นคำขอ' },
-                 { icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />', title: 'Caregiver', desc: 'จัดสรรผู้ดูแล', status: 'มีสิทธิ์' },
-                 { icon: '<path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" />', title: 'อุปกรณ์การแพทย์', desc: 'เตียงลมผู้ป่วย', status: 'มีสิทธิ์' },
-                ].map((item, i) => (
-                 <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 16, border: '1px solid #E5E7EB', borderRadius: 6, background: '#F9FAFB' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
-                       <div style={{ display: 'flex', color: '#6B7280' }}>
-                         <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: item.icon }} />
-                       </div>
-                       <div>
-                          <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>{item.title}</div>
-                          <div style={{ fontSize: 12, color: '#6B7280' }}>{item.desc}</div>
-                       </div>
-                    </div>
-                    <span style={{ fontSize: 11, fontWeight: 700, color: 'white', background: '#3B82F6', padding: '4px 10px', borderRadius: 4 }}>{item.status}</span>
+                 <div style={{ display: 'flex', justifyContent: 'space-between', padding: '10px 14px', background: '#F3F4F6', borderRadius: 6, fontSize: 13, fontWeight: 600 }}>
+                   <span>อายุ: {activePatient.Age} ปี</span>
+                   <span>เพศ: {activePatient.Gender}</span>
+                   <span>คะแนน ADL: {activePatient.ADL_Score}</span>
                  </div>
-               ))}
+                 
+                 {[
+                   { icon: '<path d="M4 8v3c0 4.5 3.5 9 8 9s8-4.5 8-9V8" /><path d="M2.5 8h19" /><path d="M7 13a4 4 0 0 0 10 0" />', title: 'ผ้าอ้อมฟรี', desc: '3 ชิ้น/วัน (กปท.)', status: activePatient.Eligibility === 'Eligible' ? 'มีสิทธิ์' : activePatient.Eligibility === 'Pending' ? 'ยื่นคำขอ' : 'ไม่ตรงเกณฑ์' },
+                   { icon: '<path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" /><circle cx="12" cy="7" r="4" />', title: 'Caregiver', desc: 'จัดสรรผู้ดูแล', status: activePatient.ADL_Score !== 'N/A' && intVal(activePatient.ADL_Score) <= 6 ? 'มีสิทธิ์' : 'พิจารณา' },
+                   { icon: '<path d="M2 4v16" /><path d="M2 8h18a2 2 0 0 1 2 2v10" /><path d="M2 17h20" /><path d="M6 8v9" />', title: 'อุปกรณ์การแพทย์', desc: 'เตียงลมผู้ป่วย', status: activePatient.ADL_Score !== 'N/A' && intVal(activePatient.ADL_Score) <= 4 ? 'มีสิทธิ์' : 'พิจารณา' },
+                 ].map((item, i) => (
+                   <div key={i} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: 14, border: '1px solid #E5E7EB', borderRadius: 6, background: '#F9FAFB' }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                         <div style={{ display: 'flex', color: '#6B7280' }}>
+                           <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" dangerouslySetInnerHTML={{ __html: item.icon }} />
+                         </div>
+                         <div>
+                            <div style={{ fontWeight: 700, fontSize: 14, color: '#111827' }}>{item.title}</div>
+                            <div style={{ fontSize: 12, color: '#6B7280' }}>{item.desc}</div>
+                         </div>
+                      </div>
+                      <span style={{ fontSize: 11, fontWeight: 700, color: 'white', background: item.status === 'มีสิทธิ์' ? '#10B981' : '#3B82F6', padding: '4px 10px', borderRadius: 4 }}>{item.status}</span>
+                   </div>
+                 ))}
+               </div>
              </div>
            </div>
-        </div>
 
-            {/* Nurse Task Board */}
            <div className="card" style={{ flex: 1, background: 'white', overflow: 'hidden' }}>
              <div style={{ background: '#4B8BFF', color: 'white', padding: '12px 16px', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
@@ -100,23 +208,20 @@ export default function CMWorkspaceTab() {
                      <div style={{ fontSize: 11, opacity: 0.9 }}>SOP มาตรฐานการจัดการเคส LTC</div>
                    </div>
                 </div>
-                <span style={{ fontWeight: 800, background: 'rgba(0,0,0,0.2)', padding: '4px 10px', borderRadius: 4, fontSize: 12 }}>2/4</span>
+                <span style={{ fontWeight: 800, background: 'rgba(0,0,0,0.2)', padding: '4px 10px', borderRadius: 4, fontSize: 12 }}>
+                  {completedTasks}/{totalTasks}
+                </span>
              </div>
              
              <div style={{ display: 'flex', flexDirection: 'column', gap: 12, padding: 20 }}>
-               {[
-                 { title: 'รับข้อมูลและนัดเยี่ยมบ้าน', desc: 'ตรวจสอบตารางกับญาติและอสม.', checked: true },
-                 { title: 'เยี่ยมบ้านและประเมิน ADL', desc: 'บันทึกคะแนนกิจวัตรประจำวัน 10 ข้อ', checked: true },
-                 { title: 'ร่าง Care Plan', desc: 'ใช้ AI ร่างแผนการดูแล', checked: false },
-                 { title: 'ส่งเรื่องให้ศูนย์อนามัย/อปท.', desc: 'เพื่ออนุมัติงบกองทุน LTC', checked: false },
-               ].map((t, i) => (
-                 <div key={i} style={{ display: 'flex', gap: 12, padding: 14, border: `1px solid ${t.checked ? '#00B87C' : 'var(--border)'}`, background: t.checked ? '#F0FDF4' : 'var(--surface)', borderRadius: 10 }}>
+               {tasks.map((t, i) => (
+                 <div key={i} onClick={() => handleToggleTask(t.title, !t.checked)} style={{ display: 'flex', gap: 12, padding: 14, border: `1px solid ${t.checked ? '#00B87C' : 'var(--border)'}`, background: t.checked ? '#F0FDF4' : 'var(--surface)', borderRadius: 10, cursor: 'pointer' }}>
                     <div style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${t.checked ? '#00B87C' : '#CBD5E1'}`, background: t.checked ? '#00B87C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
                        {t.checked && <span style={{ color: 'white', fontSize: 14 }}>✓</span>}
                     </div>
                     <div>
                        <div style={{ fontWeight: 700, fontSize: 13, color: 'var(--ink)', marginBottom: 2 }}>{t.title}</div>
-                       <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>{t.desc}</div>
+                       <div style={{ fontSize: 11, color: 'var(--ink-4)' }}>คลิกเพื่อเปลี่ยนสถานะงาน</div>
                     </div>
                  </div>
                ))}

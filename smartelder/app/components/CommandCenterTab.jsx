@@ -1,7 +1,49 @@
 'use client';
-import React from 'react';
+import React, { useState, useEffect } from 'react';
+import { API_BASE } from '../lib/api';
 
 export default function CommandCenterTab() {
+  const [live, setLive] = useState(null);   // { total, todo, inprog, done, red, orange, green }
+  const [online, setOnline] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const [kRes, aRes] = await Promise.all([
+          fetch(`${API_BASE}/api/kanban`),
+          fetch(`${API_BASE}/api/alerts`),
+        ]);
+        const k = await kRes.json();
+        const a = await aRes.json();
+        const sc = k.status_counts || {};
+        setLive({
+          total: k.total_issues ?? (k.cards ? k.cards.length : 0),
+          todo: sc['To Do'] ?? 0,
+          inprog: sc['In Progress'] ?? 0,
+          done: sc['Done'] ?? 0,
+          red: a.filter(x => x.Alert_Level === 'Red').length,
+          orange: a.filter(x => x.Alert_Level === 'Orange').length,
+          green: a.filter(x => x.Alert_Level === 'Green').length,
+        });
+        setOnline(true);
+      } catch (e) {
+        console.error('Command Center live fetch failed:', e);
+        setOnline(false);
+      }
+    };
+    load();
+    const id = setInterval(load, 5000);
+    return () => clearInterval(id);
+  }, []);
+
+  const kpis = [
+    { label: 'เคสในระบบ (DB)', value: live ? live.total : '—', color: '#2563EB' },
+    { label: 'รอดำเนินการ', value: live ? live.todo : '—', color: '#FF9500' },
+    { label: 'กำลังดำเนินการ', value: live ? live.inprog : '—', color: '#6E4FF6' },
+    { label: 'เสร็จสิ้น', value: live ? live.done : '—', color: '#00B87C' },
+    { label: 'แจ้งเตือนฉุกเฉิน', value: live ? live.red : '—', color: '#E11D48' },
+  ];
+
   return (
     <div className="anim-fade-up">
       {/* Top Bar */}
@@ -12,10 +54,24 @@ export default function CommandCenterTab() {
             </div>
             <div>
                <h2 style={{ fontSize: 18, fontWeight: 800 }}>สปสช. Command Center</h2>
-               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Executive Dashboard for SLA & Budget Monitoring (Aggregate Data)</div>
+               <div style={{ fontSize: 12, color: 'rgba(255,255,255,0.8)' }}>Executive Dashboard for SLA & Budget Monitoring</div>
             </div>
          </div>
-         <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 4, fontSize: 12, fontWeight: 700 }}>Live (Nationwide)</span>
+         <span style={{ background: 'rgba(255,255,255,0.2)', padding: '4px 12px', borderRadius: 4, fontSize: 12, fontWeight: 700, display: 'flex', alignItems: 'center', gap: 6 }}>
+            <span style={{ width: 8, height: 8, borderRadius: '50%', background: online ? '#34D399' : '#F87171' }} />
+            {online ? 'Live • เชื่อมต่อฐานข้อมูล' : 'Offline'}
+         </span>
+      </div>
+
+      {/* Live DB metrics strip (real-time from Google Sheets via backend) */}
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(5, 1fr)', gap: 16, marginBottom: 24 }}>
+         {kpis.map(k => (
+            <div key={k.label} className="card" style={{ padding: 16 }}>
+               <div style={{ fontSize: 12, color: 'var(--ink-3)', fontWeight: 600, marginBottom: 6 }}>{k.label}</div>
+               <div style={{ fontSize: 28, fontWeight: 800, color: k.color, lineHeight: 1 }}>{k.value}</div>
+               <div style={{ fontSize: 10, color: 'var(--ink-4)', marginTop: 6 }}>เรียลไทม์จากระบบ</div>
+            </div>
+         ))}
       </div>
 
       {/* SLA Gaps Row (B3, B4) */}
@@ -79,7 +135,7 @@ export default function CommandCenterTab() {
             </div>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16 }}>
                <div style={{ flex: 1, border: '1px solid #FECDD3', background: '#FFF1F2', padding: 16, borderRadius: 8 }}>
-                  <div style={{ fontSize: 11, color: '#E11D48', fontWeight: 600 }}>ก่อน PWL</div>
+                  <div style={{ fontSize: 11, color: '#E11D48', fontWeight: 600 }}>ก่อน PWL (20% ยังไม่ได้รับ Care Plan จริง)</div>
                   <div style={{ fontSize: 20, fontWeight: 800, color: '#E11D48' }}>~40%</div>
                </div>
                <span style={{ color: 'var(--ink-4)' }}>→</span>
@@ -100,7 +156,7 @@ export default function CommandCenterTab() {
                </div>
                <div>
                   <h2 style={{ fontSize: 16, fontWeight: 700, color: 'var(--ink)' }}>Care Manager Capacity</h2>
-                  <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>อัตราส่วน CM:ผู้ป่วย &gt; 3.5 = ความเสี่ยง (Gap B2)</div>
+                  <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>CG ปัจจุบัน 18,000 คน / เป้าหมาย 50,000 คน | ค่าตอบแทน 5,000–6,000 บาท/เดือน (Gap B2)</div>
                </div>
             </div>
 
