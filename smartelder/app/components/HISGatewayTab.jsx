@@ -1,5 +1,6 @@
 'use client';
 import { useState } from 'react';
+import { API_BASE } from '../lib/api';
 
 /* Simulated HOSxP feed — Anonymized, No Hospital */
 const HIS_FEED = [
@@ -15,7 +16,25 @@ const HIS_FEED = [
 
 export default function HISGatewayTab() {
   const [filter, setFilter] = useState('all');
+  const [discharged, setDischarged] = useState({}); // hn -> 'loading' | 'done'
   const filtered = filter === 'diaper' ? HIS_FEED.filter(f => f.diaper) : HIS_FEED;
+
+  const confirmDischarge = async (r) => {
+    setDischarged(d => ({ ...d, [r.hn]: 'loading' }));
+    try {
+      const res = await fetch(`${API_BASE}/api/his/confirm-discharge`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          hn: r.hn, name: `ผู้ป่วย ${r.hn}`, symptom: `${r.desc} (${r.icd})`,
+          discharge_date: new Date().toISOString().slice(0, 10), adl_score: 4,
+        }),
+      });
+      setDischarged(d => ({ ...d, [r.hn]: res.ok ? 'done' : 'err' }));
+    } catch {
+      setDischarged(d => ({ ...d, [r.hn]: 'err' }));
+    }
+  };
 
   return (
     <div>
@@ -78,7 +97,18 @@ export default function HISGatewayTab() {
               <span style={{ fontSize: 12, color: 'var(--ink-2)' }}>{r.desc}</span>
               <div>
                 {r.diaper ? (
-                  <span className="chip chip-green" style={{ fontSize: 10 }}>Trigger: สิทธิ์ผ้าอ้อม</span>
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: 4, alignItems: 'flex-start' }}>
+                    <span className="chip chip-green" style={{ fontSize: 10 }}>Trigger: สิทธิ์ผ้าอ้อม</span>
+                    {discharged[r.hn] === 'done' ? (
+                      <span style={{ fontSize: 10, fontWeight: 700, color: '#00B87C' }}>✓ Auto-Refer แล้ว (ล็อคคิวส่ง)</span>
+                    ) : (
+                      <button onClick={() => confirmDischarge(r)} disabled={discharged[r.hn] === 'loading'}
+                        style={{ fontSize: 10, fontWeight: 700, background: '#059669', color: 'white', border: 'none',
+                                 padding: '3px 8px', borderRadius: 4, cursor: 'pointer' }}>
+                        {discharged[r.hn] === 'loading' ? '...' : 'ยืนยัน Discharge →'}
+                      </button>
+                    )}
+                  </div>
                 ) : (
                   <span style={{ fontSize: 11, color: 'var(--ink-4)' }}>No Action</span>
                 )}

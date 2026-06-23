@@ -24,7 +24,7 @@ export default function LandingTab({ onEnter }) {
         <div style={{ position: 'relative', zIndex: 10, maxWidth: 800, margin: '0 auto', textAlign: 'center' }}>
           <div style={{ display: 'flex', justifyContent: 'center', marginBottom: 24 }}>
              <div style={{ width: 160, height: 160, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-               <img src="/diaper-logo-real.png" alt="LTC Diaper Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(2.5)' }} />
+               <img src="/diaper-logo-real.png" alt="Diaper Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(2.5)' }} />
              </div>
           </div>
           <span style={{ background: 'rgba(255,255,255,0.2)', padding: '6px 16px', borderRadius: 999, fontSize: 13, fontWeight: 700, letterSpacing: 1, display: 'inline-block', marginBottom: 20 }}>
@@ -35,7 +35,7 @@ export default function LandingTab({ onEnter }) {
             <br />
             <span style={{ color: '#A7F3D0', fontSize: 36, letterSpacing: '-1px' }}>ระบบประสานงานคุ้มครองสิทธิผ้าอ้อมผู้สูงอายุ</span>
             <br />
-            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 24, fontWeight: 600, letterSpacing: 0, display: 'inline-block', marginTop: 12 }}>LTC Diaper Auto-Referral Agent</span>
+            <span style={{ color: 'rgba(255,255,255,0.9)', fontSize: 24, fontWeight: 600, letterSpacing: 0, display: 'inline-block', marginTop: 12 }}>Diaper Auto-Referral Agent</span>
           </h1>
           <p style={{ fontSize: 18, color: 'rgba(255,255,255,0.9)', marginBottom: 40, lineHeight: 1.6, maxWidth: 600, margin: '0 auto 40px' }}>
             ลดช่องว่างการเข้าถึงสิทธิ์ เชื่อมต่อโรงพยาบาล, สปสช., อสม., และศูนย์อนามัยเข้าด้วยกันแบบไร้รอยต่อ พร้อม AI ช่วย Care Manager ร่างแผนการดูแลอัตโนมัติ
@@ -87,7 +87,7 @@ export default function LandingTab({ onEnter }) {
                {[
                   { phase: 'DETECT', title: 'ดักจับข้อมูล', action: 'แพทย์บันทึกรหัสโรคลงระบบ HIS', touchpoint: 'ระบบสร้าง Ticket อัตโนมัติ', color: '#2563EB', bg: '#EFF6FF', icon: '<path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z"></path><polyline points="22,6 12,13 2,6"></polyline>' },
                   { phase: 'EVALUATE', title: 'ประเมินแผน', action: 'Line Agent ซักถามญาติ + AI ร่าง Care Plan', touchpoint: 'CM ยืนยันข้อมูลผ่าน Workspace', color: '#6E4FF6', bg: '#F5F3FF', icon: '<rect x="3" y="11" width="18" height="10" rx="2"></rect><circle cx="12" cy="5" r="2"></circle><path d="M12 7v4"></path>' },
-                  { phase: 'APPROVE', title: 'อนุมัติสิทธิ์', action: 'สปสช. / อปท. พิจารณางบกองทุน LTC', touchpoint: 'แจ้งเตือนอนุมัติ Real-time', color: '#FF9500', bg: '#FFF7ED', icon: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>' },
+                  { phase: 'APPROVE', title: 'อนุมัติสิทธิ์', action: 'สปสช. / อปท. พิจารณางบกองทุนดูแลระยะยาว', touchpoint: 'แจ้งเตือนอนุมัติ Real-time', color: '#FF9500', bg: '#FFF7ED', icon: '<path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"></path><polyline points="22 4 12 14.01 9 11.01"></polyline>' },
                   { phase: 'CARE', title: 'ส่งมอบและติดตาม', action: 'อสม. ลงพื้นที่ส่งผ้าอ้อมถึงบ้าน', touchpoint: 'ติดตามสถานะผ่าน Line OA', color: '#00B87C', bg: '#F0FDF4', icon: '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path>' }
                ].map((step, idx) => (
                   <div key={idx} style={{ borderRight: idx < 3 ? '1px solid #E5E7EB' : 'none', display: 'flex', flexDirection: 'column' }}>

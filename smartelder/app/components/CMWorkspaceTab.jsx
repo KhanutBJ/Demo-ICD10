@@ -4,8 +4,8 @@ import { API_BASE } from '../lib/api';
 
 const TOOLS = [
   { id: 'adl', label: 'ประเมิน ADL', desc: 'Barthel Index Scoring' },
-  { id: 'careplan', label: 'ร่าง Care Plan', desc: 'แผนดูแล 3C (LTC)' },
-  { id: 'rights', label: 'เช็คสิทธิ์ผ้าอ้อม LTC', desc: 'ตรวจสอบคุณสมบัติ' },
+  { id: 'careplan', label: 'ร่าง Care Plan', desc: 'แผนดูแล 3C (ดูแลระยะยาว)' },
+  { id: 'rights', label: 'เช็คสิทธิ์ผ้าอ้อม ดูแลระยะยาว', desc: 'ตรวจสอบคุณสมบัติ' },
   { id: 'policy', label: 'ค้นหาระเบียบ สปสช.', desc: 'เงื่อนไขเบิกจ่าย' },
 ];
 
@@ -205,7 +205,7 @@ export default function CMWorkspaceTab() {
                    </div>
                    <div>
                      <h2 style={{ fontSize: 16, fontWeight: 700 }}>CM Task Checklist</h2>
-                     <div style={{ fontSize: 11, opacity: 0.9 }}>SOP มาตรฐานการจัดการเคส LTC</div>
+                     <div style={{ fontSize: 11, opacity: 0.9 }}>SOP มาตรฐานการจัดการเคส ดูแลระยะยาว</div>
                    </div>
                 </div>
                 <span style={{ fontWeight: 800, background: 'rgba(0,0,0,0.2)', padding: '4px 10px', borderRadius: 4, fontSize: 12 }}>

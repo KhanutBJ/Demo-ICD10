@@ -41,7 +41,7 @@ export default function HomePage() {
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: 80, gap: 16 }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: 16, flexShrink: 0 }}>
               <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 64, height: 64, flexShrink: 0 }}>
-                <img src="/diaper-logo-real.png" alt="LTC Diaper Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.8)' }} />
+                <img src="/diaper-logo-real.png" alt="Diaper Logo" style={{ width: '100%', height: '100%', objectFit: 'contain', transform: 'scale(1.8)' }} />
               </div>
               <div>
                 <div style={{ fontWeight: 800, fontSize: 18, color: 'white', letterSpacing: '-0.2px' }}>LaPooPoo</div>

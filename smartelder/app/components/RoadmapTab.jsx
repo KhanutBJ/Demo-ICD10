@@ -45,11 +45,11 @@ const PHASES = [
     bg: '#F0FDF4',
     border: '#A7F3D0',
     status: 'future',
-    goal: 'ระบบ LTC ระดับประเทศ รองรับ Super-Aged Society พ.ศ. 2574',
+    goal: 'ระบบดูแลระยะยาว ระดับประเทศ รองรับ Super-Aged Society พ.ศ. 2574',
     items: [
-      { done: false, text: 'National LTC Governance Body — คณะกรรมการผู้สูงอายุแห่งชาติ เป็น Coordinator' },
+      { done: false, text: 'National Governance Body — คณะกรรมการผู้สูงอายุแห่งชาติ เป็น Coordinator' },
       { done: false, text: 'Needs-Based / Case-Mix Financing แทน Flat-Rate 6,000 บาท/คน/ปี' },
-      { done: false, text: 'District-Level System Manager (ต้นแบบจาก Japan LTC CM model)' },
+      { done: false, text: 'District-Level System Manager (ต้นแบบจาก Japan CM model)' },
       { done: false, text: 'Social Daycare + Respite Care infrastructure ทุกจังหวัด' },
       { done: false, text: '50,000 CG พร้อมปฏิบัติงาน (จาก 18,000 ปัจจุบัน)' },
       { done: false, text: 'ผู้ป่วยทุกราย ≤ 3 วันได้รับการดูแล นับจากออกจากโรงพยาบาล' },
@@ -64,7 +64,7 @@ const POLICY_RECS = [
   { num: 3, label: 'Outcome vs Process Indicators', detail: 'เปลี่ยนจาก Process → QoL, Caregiver Burden Index, Family Satisfaction' },
   { num: 4, label: 'Needs-Based Financing', detail: 'Case-Mix แทน Flat-Rate 6,000 THB capitation' },
   { num: 5, label: 'Integrated HIS (interRAI)', detail: 'มาตรฐาน OECD/Canada/Singapore แทน Triple-Entry' },
-  { num: 6, label: 'National LTC Governance', detail: 'คณะกรรมการผู้สูงอายุแห่งชาติ เป็น Coordinator ครอบคลุม 5 กระทรวง' },
+  { num: 6, label: 'National Governance', detail: 'คณะกรรมการผู้สูงอายุแห่งชาติ เป็น Coordinator ครอบคลุม 5 กระทรวง' },
 ];
 
 export default function RoadmapTab() {
@@ -77,7 +77,7 @@ export default function RoadmapTab() {
           STRATEGIC ROADMAP
         </span>
         <h1 style={{ fontSize: 32, fontWeight: 900, marginBottom: 12, letterSpacing: '-0.5px' }}>
-          จาก Pilot สู่ National LTC Platform
+          จาก Pilot สู่ National แพลตฟอร์มดูแลระยะยาว
         </h1>
         <p style={{ fontSize: 15, color: 'rgba(255,255,255,0.75)', maxWidth: 680, lineHeight: 1.6 }}>
           แผน 3 ระยะ ปิด Coverage Gap และรองรับ Super-Aged Society ภายใน พ.ศ. 2574
@@ -137,7 +137,7 @@ export default function RoadmapTab() {
           <div style={{ background: '#0F172A', color: 'white', padding: '6px 14px', borderRadius: 6, fontSize: 13, fontWeight: 800 }}>นโยบาย</div>
           <div>
             <h2 style={{ fontSize: 16, fontWeight: 800, color: 'var(--ink)' }}>6 ข้อเสนอแนะเชิงนโยบาย</h2>
-            <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>จากรายงานวิจัยระบบ LTC ราชวิทยาลัย / ม.มหิดล — สปสช. มีนาคม 2568</div>
+            <div style={{ fontSize: 12, color: 'var(--ink-4)' }}>จากรายงานวิจัยระบบดูแลระยะยาว ราชวิทยาลัย / ม.มหิดล — สปสช. มีนาคม 2568</div>
           </div>
         </div>
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 16 }}>

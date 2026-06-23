@@ -31,7 +31,7 @@ export default function PatientDetailTab() {
             🤖 RAG — หน่วยงานที่เกี่ยวข้อง
           </div>
           <div style={{ display: 'flex', gap: 8, marginBottom: 24 }}>
-            {['สปสช.', 'กปท.', 'LTC Fund', 'กองทุนฟื้นฟูจังหวัด', 'อปท.'].map(tag => (
+            {['สปสช.', 'กปท.', 'กองทุนดูแลระยะยาว', 'กองทุนฟื้นฟูจังหวัด', 'อปท.'].map(tag => (
               <span key={tag} style={{ fontSize: 11, fontWeight: 600, color: 'var(--blue)', border: '1px solid var(--blue-light)', padding: '4px 10px', borderRadius: 6 }}>{tag}</span>
             ))}
           </div>
@@ -96,7 +96,7 @@ export default function PatientDetailTab() {
                 { icon: '🧑‍⚕️', title: 'อสม. ชุมชน', badge: 'ประสานลงพื้นที่', desc: 'นัดหมายกับญาติก่อนเยี่ยมบ้าน — ขออนุญาตก่อนเข้าบ้านและถ่ายรูป' },
                 { icon: '👩‍⚕️', title: 'พยาบาลวิชาชีพ', badge: 'เยี่ยมบ้าน + ประเมิน Barthel ADL', desc: 'วัด BP, O2Sat, ประเมินกิจวัตร, บันทึก Care Plan ใน Program 3C กรมอนามัย' },
                 { icon: '🏢', title: 'กปท.', badge: 'จัดส่งผ้าอ้อมฟรี', desc: '3 ชิ้น/วัน — ส่งถึงเคาน์เตอร์ศูนย์อนามัย พร้อม PIN รับของ 6 หลัก' },
-                { icon: '🏛️', title: 'อปท./เทศบาล', badge: 'ลงทะเบียน Caregiver + LTC Fund', desc: 'Caregiver 6,000-10,442 บาท/ปี + ประสานกองสวัสดิการสังคม' },
+                { icon: '🏛️', title: 'อปท./เทศบาล', badge: 'ลงทะเบียน Caregiver + กองทุนดูแลระยะยาว', desc: 'Caregiver 6,000-10,442 บาท/ปี + ประสานกองสวัสดิการสังคม' },
               ].map((step, i) => (
                 <div key={i} style={{ marginBottom: 24, position: 'relative' }}>
                    <div style={{ position: 'absolute', left: -40, top: 0, width: 32, height: 32, borderRadius: '50%', background: 'white', border: '1px solid #CBD5E1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: 16 }}>{step.icon}</div>
@@ -137,7 +137,7 @@ export default function PatientDetailTab() {
                { title: 'นัดหมายเยี่ยมบ้าน', desc: 'นัดกับญาติ/อสม. ก่อนลงพื้นที่', step: 'ขั้นตอน ๒', checked: true },
                { title: 'เยี่ยมบ้าน + ประเมิน Barthel ADL', desc: 'วัด BP, O2Sat, ดัชนีบาร์เธลเอล', step: 'ขั้นตอน ๒', checked: false },
                { title: 'วางแผน Care Plan (Program 3C)', desc: 'บันทึกปัญหาสุขภาพในระบบกรมอนามัย', step: 'ขั้นตอน ๓', checked: false },
-               { title: 'ส่งต่อสหวิชาชีพ', desc: 'กปท. / LTC Fund / อปท.', step: 'ขั้นตอน ๓', checked: false },
+               { title: 'ส่งต่อสหวิชาชีพ', desc: 'กปท. / กองทุนดูแลระยะยาว / อปท.', step: 'ขั้นตอน ๓', checked: false },
              ].map((t, i) => (
                <div key={i} style={{ display: 'flex', gap: 12, padding: 16, border: `1px solid ${t.checked ? '#00B87C' : 'var(--border)'}`, background: t.checked ? '#F0FDF4' : 'var(--surface)', borderRadius: 10 }}>
                   <div style={{ width: 20, height: 20, borderRadius: 4, border: `2px solid ${t.checked ? '#00B87C' : '#CBD5E1'}`, background: t.checked ? '#00B87C' : 'transparent', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, marginTop: 2 }}>
